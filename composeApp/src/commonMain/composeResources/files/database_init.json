@@ -1,0 +1,81 @@
+{
+  "clubs": [
+    {
+      "id": "lisboa_aguias",
+      "name": "Águias de Lisboa",
+      "primaryColor": "#FF0000",
+      "divisionLevel": 1,
+      "budget": 45000000.0,
+      "stadiumCapacity": 65000,
+      "ticketPrice": 35.0,
+      "fanBaseLoyalty": 85,
+      "reputation": 82,
+      "youthAcademyLevel": 9,
+      "trainingFacilities": 9
+    },
+    {
+      "id": "invicta_dragoes",
+      "name": "Dragões da Invicta",
+      "primaryColor": "#0000FF",
+      "divisionLevel": 1,
+      "budget": 40000000.0,
+      "stadiumCapacity": 50000,
+      "ticketPrice": 30.0,
+      "fanBaseLoyalty": 88,
+      "reputation": 81,
+      "youthAcademyLevel": 8,
+      "trainingFacilities": 8
+    },
+    {
+      "id": "alvalade_leoes",
+      "name": "Leões de Alvalade",
+      "primaryColor": "#00FF00",
+      "divisionLevel": 1,
+      "budget": 35000000.0,
+      "stadiumCapacity": 50000,
+      "ticketPrice": 30.0,
+      "fanBaseLoyalty": 86,
+      "reputation": 80,
+      "youthAcademyLevel": 10,
+      "trainingFacilities": 8
+    }
+  ],
+  "players": [
+    {
+      "id": "p_aguias_1",
+      "clubId": "lisboa_aguias",
+      "name": "Ángel Magia",
+      "age": 36,
+      "mainPosition": "RW",
+      "stamina": 100,
+      "morale": 90,
+      "pace": 75, "strength": 55, "tackling": 30, "defensivePositioning": 40,
+      "vision": 88, "passing": 85, "dribbling": 90, "offensivePositioning": 85, "finishing": 82, "heading": 50,
+      "gkReflexes": 10, "gkHandling": 10, "gkAgility": 10
+    },
+    {
+      "id": "p_dragoes_1",
+      "clubId": "invicta_dragoes",
+      "name": "Diogo Muralha",
+      "age": 24,
+      "mainPosition": "GK",
+      "stamina": 100,
+      "morale": 95,
+      "pace": 40, "strength": 75, "tackling": 15, "defensivePositioning": 15,
+      "vision": 65, "passing": 70, "dribbling": 20, "offensivePositioning": 10, "finishing": 10, "heading": 20,
+      "gkReflexes": 88, "gkHandling": 82, "gkAgility": 85
+    },
+    {
+      "id": "p_leoes_1",
+      "clubId": "alvalade_leoes",
+      "name": "Vítor Máquina",
+      "age": 26,
+      "mainPosition": "ST",
+      "stamina": 100,
+      "morale": 100,
+      "pace": 88, "strength": 92, "tackling": 45, "defensivePositioning": 40,
+      "vision": 78, "passing": 75, "dribbling": 85, "offensivePositioning": 90, "finishing": 92, "heading": 80,
+      "gkReflexes": 10, "gkHandling": 10, "gkAgility": 10
+    }
+  ]
+}
