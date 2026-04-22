@@ -2,7 +2,9 @@ package com.brunogarcia.footballempireclubmanager.domain.model
 
 import kotlin.math.roundToInt
 import com.brunogarcia.footballempireclubmanager.domain.engine.PositionWeightRules
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class Player(
     val id: String,
     val clubId: String,
@@ -81,6 +83,7 @@ data class Player(
     }
 }
 
+@Serializable
 enum class Position {
     GK, // Guarda-Redes
     CB, // Defesa Central
