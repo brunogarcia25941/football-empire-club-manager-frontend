@@ -1,0 +1,114 @@
+package com.brunogarcia.footballempireclubmanager.presentation.screens.dashboard
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import cafe.adriel.voyager.core.screen.Screen
+import cafe.adriel.voyager.koin.getScreenModel
+
+class DashboardScreen : Screen {
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    override fun Content() {
+        // Usamos o Koin para injetar o ScreenModel magicamente!
+        val screenModel = getScreenModel<DashboardScreenModel>()
+
+        // Observa o estado (se o budget mudar, a UI atualiza sozinha)
+        val state by screenModel.state.collectAsState()
+
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text(state.clubName, fontWeight = FontWeight.Bold) },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                )
+            },
+            floatingActionButton = {
+                ExtendedFloatingActionButton(
+                    onClick = { screenModel.onAdvanceWeekClicked() },
+                    icon = { Icon(Icons.Filled.PlayArrow, contentDescription = "Avançar") },
+                    text = { Text("Avançar Semana") },
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            }
+        ) { paddingValues ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Cartão da Época / Semana
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Filled.DateRange, contentDescription = null, modifier = Modifier.size(32.dp))
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column {
+                            Text("Calendário", style = MaterialTheme.typography.labelMedium)
+                            Text("Semana ${state.currentWeek}", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+
+                // Cartão Financeiro
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text("Orçamento do Clube", style = MaterialTheme.typography.labelMedium)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        // Formatar o dinheiro (ex: 45000000 -> 45.000.000 €)
+                        Text(
+                            text = formatBudget(state.budget),
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+
+                // Espaço para o "Próximo Jogo" (Vamos preencher isto mais tarde!)
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text("Próximo Jogo", style = MaterialTheme.typography.labelMedium)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("VS Dragões da Invicta", fontWeight = FontWeight.Medium, fontSize = 18.sp)
+                        Text("Fora", style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Função pura em Kotlin para formatar "45000000.0" em "45.000.000 €"
+fun formatBudget(budget: Double): String {
+    val numberString = budget.toLong().toString()
+    val reversed = numberString.reversed()
+    val chunked = reversed.chunked(3)
+    return chunked.joinToString(".").reversed() + " €"
+}

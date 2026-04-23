@@ -48,6 +48,7 @@ kotlin {
             implementation(libs.voyager.transitions)
             implementation(libs.voyager.koin)
             implementation(libs.kotlinx.serialization.json)
+            implementation(compose.materialIconsExtended)
             // implementation(libs.room.runtime)
             // implementation(libs.sqlite.bundled)
         }
