@@ -4,13 +4,15 @@ import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import com.brunogarcia.footballempireclubmanager.domain.model.InitialDataWrapper
 import com.brunogarcia.footballempireclubmanager.domain.repository.GameRepository
+import com.brunogarcia.footballempireclubmanager.domain.usecase.GenerateFixturesUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
 class MainMenuScreenModel(
-    private val repository: GameRepository
+    private val repository: GameRepository,
+    private val generateFixturesUseCase: GenerateFixturesUseCase
 ) : ScreenModel {
 
     private val _isLoading = MutableStateFlow(false)
@@ -33,6 +35,10 @@ class MainMenuScreenModel(
 
                 // Atira tudo para a memória
                 repository.initializeGame(initialData.clubs, initialData.players, userClubId)
+
+                // Gerar e guardar o calendário
+                val fixtures = generateFixturesUseCase.execute(initialData.clubs)
+                repository.saveFixtures(fixtures)
 
                 // Avisa o Ecrã que já pode mudar de página
                 onFinished()

@@ -16,13 +16,14 @@ val appModule = module {
     // 2. Os nossos Casos de Uso (factory cria um novo sempre que for preciso)
     factory { SimulateMatchweekUseCase() }
     factory { ProcessWeeklyUpdatesUseCase() }
+    factory { GenerateFixturesUseCase() }
 
     // O AdvanceTime precisa do Repositório e dos outros dois UseCases.
     // O "get()" diz ao Koin: "Procura aqui na lista em cima e injeta automaticamente!"
     factory { AdvanceTimeUseCase(get(), get(), get()) }
 
     // 3. Os Ecrãs
-    factory { MainMenuScreenModel(get()) }
+    factory { MainMenuScreenModel(get(), get()) }
     factory { DashboardScreenModel(get(), get()) }
     factory { SquadScreenModel(get()) }
     factory { TacticsScreenModel(get()) }

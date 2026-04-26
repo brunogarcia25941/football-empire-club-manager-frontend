@@ -23,4 +23,8 @@ interface GameRepository {
     // Táticas
     fun getUserStarting11(): List<com.brunogarcia.footballempireclubmanager.domain.engine.StartingPlayer>
     fun saveUserStarting11(starting11: List<com.brunogarcia.footballempireclubmanager.domain.engine.StartingPlayer>)
+
+    // Calendário
+    fun getFixtures(): List<com.brunogarcia.footballempireclubmanager.domain.model.Fixture>
+    fun saveFixtures(fixtures: List<com.brunogarcia.footballempireclubmanager.domain.model.Fixture>)
 }

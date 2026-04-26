@@ -17,11 +17,22 @@ class AdvanceTimeUseCase(
         val allPlayers = repository.getAllPlayers()
         val userClubId = repository.getUserClubId()
 
-        // 1. Gerar o calendário da semana (Para testar, pomos o Clube 0 contra o Clube 1)
-        // No futuro, teremos um CalendarGeneratorUseCase a sério!
-        val fixtures = listOf(
-            Pair(allClubs[0], allClubs[1]) // Águias vs Dragões (Baseado no teu JSON)
-        )
+        // 1. Ler os jogos agendados para a semana atual
+        val currentWeek = repository.getCurrentWeek()
+        val allFixtures = repository.getFixtures()
+
+        // Filtra só os jogos desta semana
+        val thisWeekFixtures = allFixtures.filter { it.week == currentWeek }
+
+        // Mapeia os IDs para os objetos Club
+        val fixtures = thisWeekFixtures.mapNotNull { fixture ->
+            val home = allClubs.find { it.id == fixture.homeClubId }
+            val away = allClubs.find { it.id == fixture.awayClubId }
+            if (home != null && away != null) Pair(home, away) else null
+        }
+
+        // Se por acaso já não houver jogos (Fim da Época), não avança o tempo!
+        if (fixtures.isEmpty()) return
 
         // 2. Simular os jogos (O Motor entra em ação)
         val weeklyResults = simulateMatchweekUseCase.execute(

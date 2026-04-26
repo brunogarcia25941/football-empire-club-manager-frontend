@@ -8,6 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -40,12 +41,17 @@ class DashboardScreen : Screen {
                 )
             },
             floatingActionButton = {
+                val isEndOfSeason = state.nextMatchText == "Fim da Época"
+
                 ExtendedFloatingActionButton(
-                    onClick = { screenModel.onAdvanceWeekClicked() },
+                    onClick = {
+                        if (!isEndOfSeason) screenModel.onAdvanceWeekClicked()
+                    },
                     icon = { Icon(Icons.Filled.PlayArrow, contentDescription = "Avançar") },
-                    text = { Text("Avançar Semana") },
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
+                    text = { Text(if (isEndOfSeason) "Época Terminada" else "Avançar Semana") },
+                    // Fica cinzento se a época tiver acabado
+                    containerColor = if (isEndOfSeason) Color.Gray else MaterialTheme.colorScheme.primary,
+                    contentColor = Color.White
                 )
             }
         ) { paddingValues ->
@@ -123,7 +129,7 @@ class DashboardScreen : Screen {
                 }
                 //fim cartao ultimo Resultado
 
-                // Espaço para o "Próximo Jogo" (Vamos preencher isto mais tarde!)
+                // Cartão do Próximo Jogo
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(
                         modifier = Modifier.padding(16.dp),
@@ -131,8 +137,8 @@ class DashboardScreen : Screen {
                     ) {
                         Text("Próximo Jogo", style = MaterialTheme.typography.labelMedium)
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text("VS Dragões da Invicta", fontWeight = FontWeight.Medium, fontSize = 18.sp)
-                        Text("Fora", style = MaterialTheme.typography.bodySmall)
+                        Text(state.nextMatchText, fontWeight = FontWeight.Medium, fontSize = 18.sp)
+                        Text(state.nextMatchLoc, style = MaterialTheme.typography.bodySmall)
                     }
                 }
                 //fim cartao proximo jogo

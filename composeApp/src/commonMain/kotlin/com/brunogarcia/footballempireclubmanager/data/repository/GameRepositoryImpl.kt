@@ -16,6 +16,8 @@ class GameRepositoryImpl : GameRepository {
 
     private val userStarting11 = mutableListOf<com.brunogarcia.footballempireclubmanager.domain.engine.StartingPlayer>()
 
+    private val fixtures = mutableListOf<com.brunogarcia.footballempireclubmanager.domain.model.Fixture>()
+
     override fun initializeGame(newClubs: List<Club>, newPlayers: List<Player>, userClubId: String) {
         clubs.clear()
         players.clear()
@@ -59,5 +61,12 @@ class GameRepositoryImpl : GameRepository {
     override fun saveUserStarting11(starting11: List<com.brunogarcia.footballempireclubmanager.domain.engine.StartingPlayer>) {
         userStarting11.clear()
         userStarting11.addAll(starting11)
+    }
+
+    override fun getFixtures(): List<com.brunogarcia.footballempireclubmanager.domain.model.Fixture> = fixtures.toList()
+
+    override fun saveFixtures(newFixtures: List<com.brunogarcia.footballempireclubmanager.domain.model.Fixture>) {
+        fixtures.clear()
+        fixtures.addAll(newFixtures)
     }
 }
