@@ -14,6 +14,8 @@ class GameRepositoryImpl : GameRepository {
     private var currentUserClubId: String = ""
     private var currentWeek: Int = 1
 
+    private val userStarting11 = mutableListOf<com.brunogarcia.footballempireclubmanager.domain.engine.StartingPlayer>()
+
     override fun initializeGame(newClubs: List<Club>, newPlayers: List<Player>, userClubId: String) {
         clubs.clear()
         players.clear()
@@ -49,4 +51,13 @@ class GameRepositoryImpl : GameRepository {
         players.addAll(updatedPlayers)
     }
     override fun getMatchHistory(): List<MatchResult> = matchHistory.toList()
+
+    override fun getUserStarting11(): List<com.brunogarcia.footballempireclubmanager.domain.engine.StartingPlayer> {
+        return userStarting11.toList()
+    }
+
+    override fun saveUserStarting11(starting11: List<com.brunogarcia.footballempireclubmanager.domain.engine.StartingPlayer>) {
+        userStarting11.clear()
+        userStarting11.addAll(starting11)
+    }
 }

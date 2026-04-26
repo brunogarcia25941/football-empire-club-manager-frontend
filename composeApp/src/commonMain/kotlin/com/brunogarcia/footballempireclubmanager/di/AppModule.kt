@@ -6,6 +6,7 @@ import com.brunogarcia.footballempireclubmanager.domain.usecase.*
 import com.brunogarcia.footballempireclubmanager.presentation.screens.dashboard.DashboardScreenModel
 import com.brunogarcia.footballempireclubmanager.presentation.screens.mainmenu.MainMenuScreenModel
 import com.brunogarcia.footballempireclubmanager.presentation.screens.squad.SquadScreenModel
+import com.brunogarcia.footballempireclubmanager.presentation.screens.tactics.TacticsScreenModel
 import org.koin.dsl.module
 
 val appModule = module {
@@ -24,4 +25,5 @@ val appModule = module {
     factory { MainMenuScreenModel(get()) }
     factory { DashboardScreenModel(get(), get()) }
     factory { SquadScreenModel(get()) }
+    factory { TacticsScreenModel(get()) }
 }

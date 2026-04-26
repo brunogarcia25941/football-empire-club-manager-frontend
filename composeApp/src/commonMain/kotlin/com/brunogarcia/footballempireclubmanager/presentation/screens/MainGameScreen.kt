@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import cafe.adriel.voyager.core.screen.Screen
 import com.brunogarcia.footballempireclubmanager.presentation.screens.dashboard.DashboardScreen
 import com.brunogarcia.footballempireclubmanager.presentation.screens.squad.SquadScreen
+import com.brunogarcia.footballempireclubmanager.presentation.screens.tactics.TacticsScreen
 
 class MainGameScreen : Screen {
 
@@ -41,10 +42,10 @@ class MainGameScreen : Screen {
                         label = { Text("Plantel") }
                     )
 
-                    // Botão 3: Táticas (Ainda inativo)
+                    // Botão 3: Táticas
                     NavigationBarItem(
                         selected = selectedTab == 2,
-                        onClick = { /* TODO: Quando tivermos o ecrã, metemos selectedTab = 2 */ },
+                        onClick = { selectedTab = 2 },
                         icon = { Icon(Icons.Filled.Star, contentDescription = "Táticas") },
                         label = { Text("Táticas") }
                     )
@@ -56,6 +57,7 @@ class MainGameScreen : Screen {
                 when (selectedTab) {
                     0 -> DashboardScreen().Content()
                     1 -> SquadScreen().Content()
+                    2 -> TacticsScreen().Content()
                 }
             }
         }

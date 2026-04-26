@@ -63,9 +63,11 @@ class DashboardScreenModel(
     fun onAdvanceWeekClicked() {
         _state.value = _state.value.copy(isLoading = true)
 
-        // No futuro, passamos aqui o 11 inicial real do utilizador.
-        // Por agora, passamos uma lista vazia só para testar o motor.
-        advanceTimeUseCase.execute(userStarting11 = emptyList())
+        //  Vamos buscar a tática guardada no repositório
+        val myStarting11 = repository.getUserStarting11()
+
+        // enviamos para o motor de jog
+        advanceTimeUseCase.execute(userStarting11 = myStarting11)
 
         // Recarrega os dados para a UI atualizar o dinheiro e a semana
         loadDashboardData()
