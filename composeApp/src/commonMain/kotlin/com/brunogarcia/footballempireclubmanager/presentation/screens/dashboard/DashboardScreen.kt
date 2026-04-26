@@ -13,12 +13,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.getScreenModel
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.currentOrThrow
+import com.brunogarcia.footballempireclubmanager.presentation.screens.squad.SquadScreen
 
 class DashboardScreen : Screen {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun Content() {
+        val navigator = LocalNavigator.currentOrThrow
         // Usamos o Koin para injetar o ScreenModel magicamente!
         val screenModel = getScreenModel<DashboardScreenModel>()
 
@@ -88,6 +92,37 @@ class DashboardScreen : Screen {
                     }
                 }
 
+                // Cartão do Último Resultado
+                if (state.lastMatchResult != null) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text("Último Resultado", style = MaterialTheme.typography.labelMedium)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = state.lastMatchResult!!,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 18.sp,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                        }
+                    }
+                } else {
+                    Text(
+                        text = "A época vai começar. Prepara a equipa!",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
+                    )
+                }
+                //fim cartao ultimo Resultado
+
                 // Espaço para o "Próximo Jogo" (Vamos preencher isto mais tarde!)
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(
@@ -100,6 +135,9 @@ class DashboardScreen : Screen {
                         Text("Fora", style = MaterialTheme.typography.bodySmall)
                     }
                 }
+                //fim cartao proximo jogo
+
+
             }
         }
     }

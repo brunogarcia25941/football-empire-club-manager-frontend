@@ -76,7 +76,7 @@ object MatchEngine {
 
         val goalProbability = (exponentialRatio * 15.0)
 
-        return Random.nextDouble(0.0, 100.0) <= goalProbability
+        return Random.nextDouble(0.0, 100.0) < goalProbability
     }
 
     private fun calculateSectorStrength(team: List<StartingPlayer>, isAttack: Boolean = false, isMidfield: Boolean = false, isDefense: Boolean = false): Double {
@@ -123,6 +123,12 @@ object MatchEngine {
 
         // 3. Somamos todos os pesos (ex: dá um total de 100 bilhetes)
         val totalWeight = playersWithWeights.sumOf { it.second }
+
+
+        // Se a soma dos pesos for zero (ex: equipa só tem guarda-redes em campo)
+        if (totalWeight <= 0.0) {
+            return team.random() // Escolhe um à sorte e sai da função!
+        }
 
         // Lançamos a roleta! Um número de 0 até ao peso total.
         val randomRoll = Random.nextDouble(0.0, totalWeight)

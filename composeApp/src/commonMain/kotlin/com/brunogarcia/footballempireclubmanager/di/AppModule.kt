@@ -5,6 +5,7 @@ import com.brunogarcia.footballempireclubmanager.domain.repository.GameRepositor
 import com.brunogarcia.footballempireclubmanager.domain.usecase.*
 import com.brunogarcia.footballempireclubmanager.presentation.screens.dashboard.DashboardScreenModel
 import com.brunogarcia.footballempireclubmanager.presentation.screens.mainmenu.MainMenuScreenModel
+import com.brunogarcia.footballempireclubmanager.presentation.screens.squad.SquadScreenModel
 import org.koin.dsl.module
 
 val appModule = module {
@@ -22,4 +23,5 @@ val appModule = module {
     // 3. Os Ecrãs
     factory { MainMenuScreenModel(get()) }
     factory { DashboardScreenModel(get(), get()) }
+    factory { SquadScreenModel(get()) }
 }

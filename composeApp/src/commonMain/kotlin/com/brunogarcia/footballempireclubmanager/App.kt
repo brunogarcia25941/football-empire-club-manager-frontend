@@ -2,6 +2,7 @@ package com.brunogarcia.footballempireclubmanager
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import cafe.adriel.voyager.navigator.CurrentScreen
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.transitions.SlideTransition
 import com.brunogarcia.footballempireclubmanager.di.appModule
@@ -19,7 +20,7 @@ fun App() {
             // Inicializamos o Voyager para gerir os ecrãs
             // E dizemos que o primeiro ecrã é o main menu screen
             Navigator(MainMenuScreen()) { navigator ->
-                SlideTransition(navigator) // Animações de deslizar
+                CurrentScreen()
             }
         }
     }

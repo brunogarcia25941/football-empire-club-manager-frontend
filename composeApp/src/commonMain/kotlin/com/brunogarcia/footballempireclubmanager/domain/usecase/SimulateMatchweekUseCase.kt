@@ -25,14 +25,14 @@ class SimulateMatchweekUseCase {
 
         for ((homeClub, awayClub) in fixtures) {
             // 1. Prepara a Equipa da Casa
-            val homeTeam11 = if (homeClub.id == userClubId) {
+            val homeTeam11 = if (homeClub.id == userClubId && userStarting11.isNotEmpty()) {
                 userStarting11
             } else {
                 autoPickStarting11(homeClub.id, allPlayers)
             }
 
             // 2. Prepara a Equipa de Fora
-            val awayTeam11 = if (awayClub.id == userClubId) {
+            val awayTeam11 = if (awayClub.id == userClubId && userStarting11.isNotEmpty()) {
                 userStarting11
             } else {
                 autoPickStarting11(awayClub.id, allPlayers)

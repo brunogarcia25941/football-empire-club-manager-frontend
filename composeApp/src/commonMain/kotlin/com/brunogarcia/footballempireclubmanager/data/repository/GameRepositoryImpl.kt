@@ -48,4 +48,5 @@ class GameRepositoryImpl : GameRepository {
         players.clear()
         players.addAll(updatedPlayers)
     }
+    override fun getMatchHistory(): List<MatchResult> = matchHistory.toList()
 }

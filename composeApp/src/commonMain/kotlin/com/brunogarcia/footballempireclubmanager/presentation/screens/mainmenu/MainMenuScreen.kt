@@ -11,6 +11,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.getScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.brunogarcia.footballempireclubmanager.presentation.screens.MainGameScreen
 import com.brunogarcia.footballempireclubmanager.presentation.screens.dashboard.DashboardScreen
 import kotlinproject.composeapp.generated.resources.*
 import kotlinx.coroutines.launch
@@ -61,10 +62,10 @@ class MainMenuScreen : Screen {
                                 val jsonBytes = Res.readBytes("files/database_init.json")
                                 val jsonString = jsonBytes.decodeToString()
 
-                                // 2. Manda para o cérebro processar e, no fim, vai para o Dashboard!
+                                // 2. Manda para o cérebro processar e, no fim, vai para o main game screen!
                                 screenModel.startNewGame(jsonString) {
-                                    // Limpa o Menu Principal e mete o Dashboard como ecrã inicial
-                                    navigator.replaceAll(DashboardScreen())
+                                    // Limpa o Menu Principal e mete o main game screen como ecrã inicial
+                                    navigator.push(MainGameScreen())
                                 }
                             }
                         },

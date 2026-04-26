@@ -18,4 +18,6 @@ interface GameRepository {
     fun advanceWeek()
     fun saveMatchResults(results: List<MatchResult>)
     fun updateClubsAndPlayers(clubs: List<Club>, players: List<Player>)
+    // Adiciona esta linha junto às outras funções de "Ler os dados"
+    fun getMatchHistory(): List<MatchResult>
 }
