@@ -4,6 +4,7 @@ import com.brunogarcia.footballempireclubmanager.data.repository.GameRepositoryI
 import com.brunogarcia.footballempireclubmanager.domain.repository.GameRepository
 import com.brunogarcia.footballempireclubmanager.domain.usecase.*
 import com.brunogarcia.footballempireclubmanager.presentation.screens.dashboard.DashboardScreenModel
+import com.brunogarcia.footballempireclubmanager.presentation.screens.leaguetable.LeagueTableScreenModel
 import com.brunogarcia.footballempireclubmanager.presentation.screens.mainmenu.MainMenuScreenModel
 import com.brunogarcia.footballempireclubmanager.presentation.screens.squad.SquadScreenModel
 import com.brunogarcia.footballempireclubmanager.presentation.screens.tactics.TacticsScreenModel
@@ -17,6 +18,7 @@ val appModule = module {
     factory { SimulateMatchweekUseCase() }
     factory { ProcessWeeklyUpdatesUseCase() }
     factory { GenerateFixturesUseCase() }
+    factory { CalculateLeagueTableUseCase() }
 
     // O AdvanceTime precisa do Repositório e dos outros dois UseCases.
     // O "get()" diz ao Koin: "Procura aqui na lista em cima e injeta automaticamente!"
@@ -27,4 +29,5 @@ val appModule = module {
     factory { DashboardScreenModel(get(), get()) }
     factory { SquadScreenModel(get()) }
     factory { TacticsScreenModel(get()) }
+    factory { LeagueTableScreenModel(get(), get()) }
 }

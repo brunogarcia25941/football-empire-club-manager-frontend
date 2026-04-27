@@ -6,11 +6,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import cafe.adriel.voyager.core.screen.Screen
 import com.brunogarcia.footballempireclubmanager.presentation.screens.dashboard.DashboardScreen
+import com.brunogarcia.footballempireclubmanager.presentation.screens.leaguetable.LeagueTableScreen
 import com.brunogarcia.footballempireclubmanager.presentation.screens.squad.SquadScreen
 import com.brunogarcia.footballempireclubmanager.presentation.screens.tactics.TacticsScreen
 
@@ -49,6 +51,14 @@ class MainGameScreen : Screen {
                         icon = { Icon(Icons.Filled.Star, contentDescription = "Táticas") },
                         label = { Text("Táticas") }
                     )
+
+                    // Botão 4: Classificação
+                    NavigationBarItem(
+                        selected = selectedTab == 3,
+                        onClick = { selectedTab = 3 },
+                        icon = { Icon(Icons.Filled.List, contentDescription = "Tabela") }, // Importa Icons.Filled.List
+                        label = { Text("Tabela") }
+                    )
                 }
             }
         ) { paddingValues ->
@@ -58,6 +68,7 @@ class MainGameScreen : Screen {
                     0 -> DashboardScreen().Content()
                     1 -> SquadScreen().Content()
                     2 -> TacticsScreen().Content()
+                    3 -> LeagueTableScreen().Content()
                 }
             }
         }
