@@ -4,6 +4,7 @@ import com.brunogarcia.footballempireclubmanager.data.repository.GameRepositoryI
 import com.brunogarcia.footballempireclubmanager.domain.repository.GameRepository
 import com.brunogarcia.footballempireclubmanager.domain.usecase.*
 import com.brunogarcia.footballempireclubmanager.presentation.screens.dashboard.DashboardScreenModel
+import com.brunogarcia.footballempireclubmanager.presentation.screens.fixtures.FixturesScreenModel
 import com.brunogarcia.footballempireclubmanager.presentation.screens.leaguetable.LeagueTableScreenModel
 import com.brunogarcia.footballempireclubmanager.presentation.screens.mainmenu.MainMenuScreenModel
 import com.brunogarcia.footballempireclubmanager.presentation.screens.squad.SquadScreenModel
@@ -30,4 +31,5 @@ val appModule = module {
     factory { SquadScreenModel(get()) }
     factory { TacticsScreenModel(get()) }
     factory { LeagueTableScreenModel(get(), get()) }
+    factory { FixturesScreenModel(get()) }
 }

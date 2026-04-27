@@ -7,6 +7,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -15,6 +16,7 @@ import com.brunogarcia.footballempireclubmanager.presentation.screens.dashboard.
 import com.brunogarcia.footballempireclubmanager.presentation.screens.leaguetable.LeagueTableScreen
 import com.brunogarcia.footballempireclubmanager.presentation.screens.squad.SquadScreen
 import com.brunogarcia.footballempireclubmanager.presentation.screens.tactics.TacticsScreen
+import com.brunogarcia.footballempireclubmanager.presentation.screens.fixtures.FixturesScreen
 
 class MainGameScreen : Screen {
 
@@ -59,6 +61,14 @@ class MainGameScreen : Screen {
                         icon = { Icon(Icons.Filled.List, contentDescription = "Tabela") }, // Importa Icons.Filled.List
                         label = { Text("Tabela") }
                     )
+
+                    // Botão 5: Calendário / Resultados
+                    NavigationBarItem(
+                        selected = selectedTab == 4,
+                        onClick = { selectedTab = 4 },
+                        icon = { Icon(Icons.Filled.DateRange, contentDescription = "Jogos") },
+                        label = { Text("Jogos") }
+                    )
                 }
             }
         ) { paddingValues ->
@@ -69,6 +79,7 @@ class MainGameScreen : Screen {
                     1 -> SquadScreen().Content()
                     2 -> TacticsScreen().Content()
                     3 -> LeagueTableScreen().Content()
+                    4 -> FixturesScreen().Content()
                 }
             }
         }
