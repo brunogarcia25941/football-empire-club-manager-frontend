@@ -105,6 +105,8 @@ class DashboardScreenModel(
 
         // Recarrega os dados para a UI atualizar o dinheiro e a semana
         loadDashboardData()
+        // Auto-save no final da semana
+        repository.saveGameToDisk()
 
         _state.value = _state.value.copy(isLoading = false)
     }

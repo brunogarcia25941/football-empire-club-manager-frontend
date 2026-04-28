@@ -19,6 +19,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.getScreenModel
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.currentOrThrow
+import com.brunogarcia.footballempireclubmanager.presentation.screens.matchreport.MatchReportScreen
+import androidx.compose.foundation.clickable
 
 class FixturesScreen : Screen {
 
@@ -27,6 +31,7 @@ class FixturesScreen : Screen {
     override fun Content() {
         val screenModel = getScreenModel<FixturesScreenModel>()
         val matches by screenModel.matches.collectAsState()
+        val navigator = LocalNavigator.currentOrThrow
 
         // Garante que a lista atualiza sempre que abrimos a aba
         LaunchedEffect(Unit) { screenModel.loadFixtures() }
@@ -47,19 +52,24 @@ class FixturesScreen : Screen {
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(matches) { match ->
-                    MatchItemCard(match)
+                    MatchItemCard(match, onClick = {
+                        if (match.isPlayed) {
+                            // Abre o relatório passando os IDs das equipas
+                            navigator.push(MatchReportScreen(match.homeClubId, match.awayClubId))
+                        }
+                    })
                 }
             }
         }
     }
 
     @Composable
-    private fun MatchItemCard(match: MatchDisplayItem) {
+    private fun MatchItemCard(match: MatchDisplayItem, onClick: () -> Unit) {
         // Se já foi jogado, fica com o fundo ligeiramente diferente
         val bgColor = if (match.isPlayed) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface
 
         Card(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().clickable { onClick() },
             colors = CardDefaults.cardColors(containerColor = bgColor),
             elevation = CardDefaults.cardElevation(defaultElevation = if (match.isPlayed) 1.dp else 3.dp)
         ) {

@@ -49,6 +49,7 @@ kotlin {
             implementation(libs.voyager.koin)
             implementation(libs.kotlinx.serialization.json)
             implementation(compose.materialIconsExtended)
+            implementation("com.russhwolf:multiplatform-settings-no-arg:1.1.1")
             // implementation(libs.room.runtime)
             // implementation(libs.sqlite.bundled)
         }

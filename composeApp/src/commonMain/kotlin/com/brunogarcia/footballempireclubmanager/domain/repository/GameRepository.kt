@@ -27,4 +27,8 @@ interface GameRepository {
     // Calendário
     fun getFixtures(): List<com.brunogarcia.footballempireclubmanager.domain.model.Fixture>
     fun saveFixtures(fixtures: List<com.brunogarcia.footballempireclubmanager.domain.model.Fixture>)
+
+    fun saveGameToDisk()
+    fun loadGameFromDisk(): Boolean
+    fun hasSavedGame(): Boolean
 }

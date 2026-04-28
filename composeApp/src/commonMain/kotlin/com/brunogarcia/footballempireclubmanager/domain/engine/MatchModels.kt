@@ -1,7 +1,9 @@
 package com.brunogarcia.footballempireclubmanager.domain.engine
 
 import com.brunogarcia.footballempireclubmanager.domain.model.Player
+import kotlinx.serialization.Serializable
 
+@Serializable
 enum class MatchEventType {
     GOAL,
     YELLOW_CARD,
@@ -9,6 +11,7 @@ enum class MatchEventType {
     INJURY
 }
 
+@Serializable
 data class MatchEvent(
     val minute: Int,
     val type: MatchEventType,
@@ -17,6 +20,7 @@ data class MatchEvent(
     val clubId: String
 )
 
+@Serializable
 data class MatchResult(
     val homeClubId: String,
     val awayClubId: String,
@@ -27,6 +31,7 @@ data class MatchResult(
 
 // Uma estrutura temporária para ajudar o motor de jogo a saber em que posição
 // cada jogador está a jogar neste jogo específico.
+@Serializable
 data class StartingPlayer(
     val player: Player,
     val playingPosition: com.brunogarcia.footballempireclubmanager.domain.model.Position

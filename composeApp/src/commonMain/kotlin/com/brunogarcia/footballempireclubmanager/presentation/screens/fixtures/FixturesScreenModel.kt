@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.StateFlow
 // Estrutura simples para a interface desenhar o cartão do jogo
 data class MatchDisplayItem(
     val week: Int,
+    val homeClubId: String,
+    val awayClubId: String,
     val opponentName: String,
     val isHome: Boolean,
     val homeGoals: Int? = null,
@@ -24,6 +26,7 @@ class FixturesScreenModel(private val repository: GameRepository) : ScreenModel 
         val allClubs = repository.getAllClubs()
         val fixtures = repository.getFixtures()
         val history = repository.getMatchHistory()
+
 
         val displayItems = mutableListOf<MatchDisplayItem>()
 
@@ -46,6 +49,8 @@ class FixturesScreenModel(private val repository: GameRepository) : ScreenModel 
                 displayItems.add(
                     MatchDisplayItem(
                         week = fixture.week,
+                        homeClubId = fixture.homeClubId,
+                        awayClubId = fixture.awayClubId,
                         opponentName = opponentName,
                         isHome = isHome,
                         homeGoals = playedMatch.homeGoals,
@@ -58,6 +63,8 @@ class FixturesScreenModel(private val repository: GameRepository) : ScreenModel 
                 displayItems.add(
                     MatchDisplayItem(
                         week = fixture.week,
+                        homeClubId = fixture.homeClubId,
+                        awayClubId = fixture.awayClubId,
                         opponentName = opponentName,
                         isHome = isHome,
                         isPlayed = false

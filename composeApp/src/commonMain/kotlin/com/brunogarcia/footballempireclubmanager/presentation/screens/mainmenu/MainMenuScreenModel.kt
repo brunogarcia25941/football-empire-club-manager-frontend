@@ -50,4 +50,16 @@ class MainMenuScreenModel(
             }
         }
     }
+
+    // Verifica se há jogo guardado
+    fun hasSavedGame(): Boolean = repository.hasSavedGame()
+
+    // Carrega o jogo e avisa quando estiver pronto
+    fun loadSavedGame(onFinished: () -> Unit) {
+        _isLoading.value = true
+        if (repository.loadGameFromDisk()) {
+            onFinished()
+        }
+        _isLoading.value = false
+    }
 }

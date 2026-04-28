@@ -58,7 +58,7 @@ class MainGameScreen : Screen {
                     NavigationBarItem(
                         selected = selectedTab == 3,
                         onClick = { selectedTab = 3 },
-                        icon = { Icon(Icons.Filled.List, contentDescription = "Tabela") }, // Importa Icons.Filled.List
+                        icon = { Icon(Icons.Filled.List, contentDescription = "Tabela") },
                         label = { Text("Tabela") }
                     )
 
@@ -83,5 +83,5 @@ class MainGameScreen : Screen {
                 }
             }
         }
-    }
+    } 
 }

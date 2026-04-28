@@ -7,6 +7,7 @@ import com.brunogarcia.footballempireclubmanager.presentation.screens.dashboard.
 import com.brunogarcia.footballempireclubmanager.presentation.screens.fixtures.FixturesScreenModel
 import com.brunogarcia.footballempireclubmanager.presentation.screens.leaguetable.LeagueTableScreenModel
 import com.brunogarcia.footballempireclubmanager.presentation.screens.mainmenu.MainMenuScreenModel
+import com.brunogarcia.footballempireclubmanager.presentation.screens.matchreport.MatchReportScreenModel
 import com.brunogarcia.footballempireclubmanager.presentation.screens.squad.SquadScreenModel
 import com.brunogarcia.footballempireclubmanager.presentation.screens.tactics.TacticsScreenModel
 import org.koin.dsl.module
@@ -32,4 +33,5 @@ val appModule = module {
     factory { TacticsScreenModel(get()) }
     factory { LeagueTableScreenModel(get(), get()) }
     factory { FixturesScreenModel(get()) }
+    factory { MatchReportScreenModel(get()) }
 }

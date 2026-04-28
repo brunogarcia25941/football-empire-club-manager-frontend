@@ -4,6 +4,10 @@ import com.brunogarcia.footballempireclubmanager.domain.engine.MatchResult
 import com.brunogarcia.footballempireclubmanager.domain.model.Club
 import com.brunogarcia.footballempireclubmanager.domain.model.Player
 import com.brunogarcia.footballempireclubmanager.domain.repository.GameRepository
+import com.russhwolf.settings.Settings
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import com.brunogarcia.footballempireclubmanager.domain.model.SaveGameData
 
 class GameRepositoryImpl : GameRepository {
 
@@ -68,5 +72,49 @@ class GameRepositoryImpl : GameRepository {
     override fun saveFixtures(newFixtures: List<com.brunogarcia.footballempireclubmanager.domain.model.Fixture>) {
         fixtures.clear()
         fixtures.addAll(newFixtures)
+    }
+
+    private val settings = Settings()
+    private val SAVE_KEY = "football_empire_save_v1"
+
+    override fun hasSavedGame(): Boolean {
+        return settings.hasKey(SAVE_KEY)
+    }
+
+    override fun saveGameToDisk() {
+        val saveData = SaveGameData(
+            clubs = clubs,
+            players = players,
+            fixtures = fixtures,
+            matchHistory = matchHistory,
+            currentWeek = currentWeek,
+            userClubId = currentUserClubId,
+            starting11 = userStarting11
+        )
+        // Converte o jogo t0do para uma string JSON e guarda no telemóvel
+        val jsonString = Json.encodeToString(saveData)
+        settings.putString(SAVE_KEY, jsonString)
+        println("Jogo Guardado com Sucesso!")
+    }
+
+    override fun loadGameFromDisk(): Boolean {
+        val jsonString = settings.getStringOrNull(SAVE_KEY) ?: return false
+        return try {
+            val saveData = Json.decodeFromString<SaveGameData>(jsonString)
+
+            // Limpa tudo e carrega os dados do save
+            clubs.clear(); clubs.addAll(saveData.clubs)
+            players.clear(); players.addAll(saveData.players)
+            fixtures.clear(); fixtures.addAll(saveData.fixtures)
+            matchHistory.clear(); matchHistory.addAll(saveData.matchHistory)
+            userStarting11.clear(); userStarting11.addAll(saveData.starting11)
+
+            currentWeek = saveData.currentWeek
+            currentUserClubId = saveData.userClubId
+            true
+        } catch (e: Exception) {
+            println("Erro ao carregar o jogo: ${e.message}")
+            false
+        }
     }
 }

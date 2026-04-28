@@ -80,11 +80,13 @@ class MainMenuScreen : Screen {
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Botão CARREGAR JOGO (Desativado para já)
+                    // Botão CARREGAR JOGO
                     OutlinedButton(
-                        onClick = { /* TODO no futuro */ },
+                        onClick = { screenModel.loadSavedGame {
+                            navigator.replaceAll(MainGameScreen())
+                        }},
                         modifier = Modifier.fillMaxWidth(0.6f),
-                        enabled = false
+                        enabled = screenModel.hasSavedGame()
                     ) {
                         Text(text = "Carregar Jogo")
                     }
