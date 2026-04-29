@@ -16,6 +16,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.getScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.brunogarcia.footballempireclubmanager.presentation.screens.facilities.FacilitiesScreen
 import com.brunogarcia.footballempireclubmanager.presentation.screens.squad.SquadScreen
 
 class DashboardScreen : Screen {
@@ -29,6 +30,8 @@ class DashboardScreen : Screen {
 
         // Observa o estado (se o budget mudar, a UI atualiza sozinha)
         val state by screenModel.state.collectAsState()
+
+        LaunchedEffect(Unit) { screenModel.loadDashboardData() }
 
         Scaffold(
             topBar = {
@@ -96,6 +99,13 @@ class DashboardScreen : Screen {
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
+                }
+
+                OutlinedButton(
+                    onClick = { navigator.push(FacilitiesScreen()) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Gerir Infraestruturas do Clube")
                 }
 
                 // Cartão do Último Resultado

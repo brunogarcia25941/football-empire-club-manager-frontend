@@ -30,7 +30,7 @@ class DashboardScreenModel(
         loadDashboardData()
     }
 
-    private fun loadDashboardData() {
+    fun loadDashboardData() {
         val userClubId = repository.getUserClubId()
         val allClubs = repository.getAllClubs()
         val userClub = allClubs.find { it.id == userClubId }
