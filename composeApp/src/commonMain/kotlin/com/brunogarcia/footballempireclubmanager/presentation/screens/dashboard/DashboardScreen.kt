@@ -17,6 +17,7 @@ import cafe.adriel.voyager.koin.getScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.brunogarcia.footballempireclubmanager.presentation.screens.facilities.FacilitiesScreen
+import com.brunogarcia.footballempireclubmanager.presentation.screens.market.TransferMarketScreen
 import com.brunogarcia.footballempireclubmanager.presentation.screens.squad.SquadScreen
 
 class DashboardScreen : Screen {
@@ -106,6 +107,16 @@ class DashboardScreen : Screen {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Gerir Infraestruturas do Clube")
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Button(
+                    onClick = { navigator.push(TransferMarketScreen()) },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+                ) {
+                    Text("Mercado de Transferências", fontWeight = FontWeight.Bold)
                 }
 
                 // Cartão do Último Resultado

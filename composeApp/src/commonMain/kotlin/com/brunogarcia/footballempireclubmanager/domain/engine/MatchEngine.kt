@@ -46,15 +46,15 @@ object MatchEngine {
                 // Quem tem posse de bola
                 val possessionRoll = Random.nextDouble(0.0, 100.0)
                 if (possessionRoll <= homePossessionChance) {
-                    // Equipa da Casa Ataca!
-                    if (isGoalScored(homeAttack, awayDefense)) {
+                    // Equipa da Casa Ataca (Só ataca se tiver jogadores em campo)
+                    if (homeTeam.isNotEmpty() && isGoalScored(homeAttack, awayDefense)) {
                         result.homeGoals++
                         val scorer = pickGoalScorer(homeTeam)
                         result.events.add(MatchEvent(minute, MatchEventType.GOAL, scorer.player.id, scorer.player.name, homeClubId))
                     }
                 } else {
-                    // Equipa de Fora Ataca!
-                    if (isGoalScored(awayAttack, homeDefense)) {
+                    // Equipa de Fora Ataca (Só ataca se tiver jogadores em campo)
+                    if (awayTeam.isNotEmpty() && isGoalScored(awayAttack, homeDefense)) {
                         result.awayGoals++
                         val scorer = pickGoalScorer(awayTeam)
                         result.events.add(MatchEvent(minute, MatchEventType.GOAL, scorer.player.id, scorer.player.name, awayClubId))
