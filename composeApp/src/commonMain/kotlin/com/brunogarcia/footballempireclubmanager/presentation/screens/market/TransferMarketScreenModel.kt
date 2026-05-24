@@ -6,8 +6,12 @@ import com.brunogarcia.footballempireclubmanager.domain.repository.GameRepositor
 import com.brunogarcia.footballempireclubmanager.domain.usecase.BuyPlayerUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
+/**
+ * Representa um item no mercado, incluindo o jogador e informações de venda.
+ */
 data class MarketItem(
     val player: Player,
     val sellerClubName: String,
@@ -15,12 +19,16 @@ data class MarketItem(
     val price: Double
 )
 
+/**
+ * Estado do ecrã do Mercado de Transferências.
+ */
 data class MarketState(
     val myBudget: Double = 0.0,
-    val allMarketPlayers: List<MarketItem> = emptyList(), // Lista completa original
-    val filteredPlayers: List<MarketItem> = emptyList(),  // Lista que aparece no ecrã
+    val allMarketPlayers: List<MarketItem> = emptyList(), // Lista completa vinda da BD
+    val filteredPlayers: List<MarketItem> = emptyList(),  // Lista filtrada para exibir
     val searchQuery: String = "",
-    val selectedPosition: String? = null // null significa "Todas"
+    val selectedPosition: String? = null, // Filtro de posição (null = Todas)
+    val selectedPlayerForDetails: MarketItem? = null // Jogador selecionado para o popup de detalhes
 )
 
 class TransferMarketScreenModel(
@@ -29,22 +37,24 @@ class TransferMarketScreenModel(
 ) : ScreenModel {
 
     private val _state = MutableStateFlow(MarketState())
-    val state: StateFlow<MarketState> = _state
+    val state: StateFlow<MarketState> = _state.asStateFlow()
 
     init {
         loadMarket()
     }
 
+    /**
+     * Carrega os dados iniciais do mercado.
+     */
     private fun loadMarket() {
         val userClubId = repository.getUserClubId()
         val allClubs = repository.getAllClubs()
         val allPlayers = repository.getAllPlayers()
-
         val myClub = allClubs.find { it.id == userClubId } ?: return
 
-        // Procura os jogadores de OUTROS clubes e cria os "MarketItems"
+        // Filtramos jogadores que não pertencem ao clube do utilizador
         val playersForSale = allPlayers
-            .filter { it.clubId != userClubId } // Exclui os do utilizador
+            .filter { it.clubId != userClubId }
             .map { p ->
                 val sellerName = allClubs.find { it.id == p.clubId }?.name ?: "Agente Livre"
                 val ovr = p.getEffectiveOverall(p.mainPosition)
@@ -55,7 +65,7 @@ class TransferMarketScreenModel(
                     price = buyPlayerUseCase.calculatePlayerValue(ovr)
                 )
             }
-            .sortedByDescending { it.overall } // Ordenar do melhor para o pior
+            .sortedByDescending { it.overall }
 
         _state.update {
             it.copy(
@@ -66,36 +76,59 @@ class TransferMarketScreenModel(
         }
     }
 
+    /**
+     * Define o jogador selecionado para abrir o popup de detalhes.
+     */
+    fun onPlayerClicked(item: MarketItem) {
+        _state.update { it.copy(selectedPlayerForDetails = item) }
+    }
 
-    // Função chamada quando o utilizador escreve na barra de pesquisa
+    /**
+     * Limpa a seleção para fechar o popup.
+     */
+    fun onDismissDialog() {
+        _state.update { it.copy(selectedPlayerForDetails = null) }
+    }
+
+    /**
+     * Atualiza o termo de pesquisa e reaplica os filtros.
+     */
     fun onSearchQueryChanged(query: String) {
         _state.update { it.copy(searchQuery = query) }
         applyFilters()
     }
 
-    // Função chamada quando o utilizador clica numa posição (GK, CB, ST, etc)
+    /**
+     * Atualiza o filtro de posição e reaplica os filtros.
+     */
     fun onPositionFilterChanged(pos: String?) {
         _state.update { it.copy(selectedPosition = pos) }
         applyFilters()
     }
 
+    /**
+     * Filtra a lista principal com base na pesquisa e na posição selecionada.
+     */
     private fun applyFilters() {
         _state.update { currentState ->
             val filtered = currentState.allMarketPlayers.filter { item ->
-                val matchesSearch =
-                    item.player.name.contains(currentState.searchQuery, ignoreCase = true)
-                val matchesPosition = currentState.selectedPosition == null ||
-                        item.player.mainPosition.name == currentState.selectedPosition
+                val matchesSearch = item.player.name.contains(currentState.searchQuery, ignoreCase = true)
+                val matchesPosition = currentState.selectedPosition == null || 
+                                     item.player.mainPosition.name == currentState.selectedPosition
                 matchesSearch && matchesPosition
             }
             currentState.copy(filteredPlayers = filtered)
         }
     }
 
+    /**
+     * Processa a compra de um jogador através do UseCase.
+     */
     fun buyPlayer(item: MarketItem) {
         val success = buyPlayerUseCase.execute(item.player.id, item.price)
         if (success) {
-            loadMarket() // Recarrega a lista para o jogador desaparecer do mercado e atualizar o saldo
+            loadMarket() // Atualiza a lista e o orçamento após a compra
+            onDismissDialog() // Fecha o popup
         }
     }
 }

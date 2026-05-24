@@ -18,6 +18,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.brunogarcia.footballempireclubmanager.presentation.screens.facilities.FacilitiesScreen
 import com.brunogarcia.footballempireclubmanager.presentation.screens.market.TransferMarketScreen
+import com.brunogarcia.footballempireclubmanager.presentation.screens.matchreport.MatchReportScreen
 import com.brunogarcia.footballempireclubmanager.presentation.screens.squad.SquadScreen
 
 class DashboardScreen : Screen {
@@ -49,7 +50,12 @@ class DashboardScreen : Screen {
 
                 ExtendedFloatingActionButton(
                     onClick = {
-                        if (!isEndOfSeason) screenModel.onAdvanceWeekClicked()
+                        if (!isEndOfSeason) {
+                            screenModel.onAdvanceWeekClicked {
+                                // Quando terminar a simulação, abre o Relatório da Jornada
+                                navigator.push(MatchReportScreen())
+                            }
+                        }
                     },
                     icon = { Icon(Icons.Filled.PlayArrow, contentDescription = "Avançar") },
                     text = { Text(if (isEndOfSeason) "Época Terminada" else "Avançar Semana") },

@@ -94,20 +94,24 @@ class DashboardScreenModel(
         }
     }
 
-    fun onAdvanceWeekClicked() {
+    fun onAdvanceWeekClicked(onFinished: () -> Unit) {
         _state.value = _state.value.copy(isLoading = true)
 
         //  Vamos buscar a tática guardada no repositório
         val myStarting11 = repository.getUserStarting11()
 
-        // enviamos para o motor de jogo
+        // enviamos para o motor de jogo para simular a semana
         advanceTimeUseCase.execute(userStarting11 = myStarting11)
 
         // Recarrega os dados para a UI atualizar o dinheiro e a semana
         loadDashboardData()
+        
         // Auto-save no final da semana
         repository.saveGameToDisk()
 
         _state.value = _state.value.copy(isLoading = false)
+        
+        // Avisa a UI que terminou para podermos mudar de ecrã
+        onFinished()
     }
 }

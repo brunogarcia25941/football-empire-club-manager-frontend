@@ -1,6 +1,7 @@
 package com.brunogarcia.footballempireclubmanager.presentation.screens.market
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -24,8 +25,9 @@ import cafe.adriel.voyager.koin.getScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 
-
-// Função para formatar o dinheiro (ex: 1000000 -> 1.000.000 €)
+/**
+ * Função utilitária para formatar valores monetários (ex: 1.000.000 €).
+ */
 fun formatPrice(value: Double): String {
     val numberString = value.toLong().toString()
     if (numberString.length <= 3) return "$numberString €"
@@ -56,19 +58,19 @@ class TransferMarketScreen : Screen {
             }
         ) { paddingValues ->
             Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-
-                // 1. Barra de Pesquisa
+                
+                // 1. Barra de Pesquisa por Nome
                 OutlinedTextField(
                     value = state.searchQuery,
                     onValueChange = { screenModel.onSearchQueryChanged(it) },
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                     placeholder = { Text("Pesquisar jogador...") },
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                     shape = RoundedCornerShape(12.dp),
                     singleLine = true
                 )
 
-                // 2. Filtros de Posição (Chips)
+                // 2. Filtros Rápidos por Posição (Horizontal)
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -90,21 +92,22 @@ class TransferMarketScreen : Screen {
                     }
                 }
 
-                // 3. Orçamento
+                // 3. Resumo Financeiro
                 Surface(
                     color = MaterialTheme.colorScheme.primaryContainer,
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
                 ) {
                     Row(
                         modifier = Modifier.padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("O teu Orçamento:", fontWeight = FontWeight.Bold)
-                        Text(formatPrice(state.myBudget), fontWeight = FontWeight.ExtraBold)
+                        Text(formatPrice(state.myBudget), fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.primary)
                     }
                 }
 
-                // 4. Lista de Jogadores Filtrada
+                // 4. Lista Principal de Jogadores
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(16.dp),
@@ -112,72 +115,183 @@ class TransferMarketScreen : Screen {
                 ) {
                     items(state.filteredPlayers) { item ->
                         PlayerMarketCard(item = item, canAfford = state.myBudget >= item.price) {
-                            screenModel.buyPlayer(item)
+                            screenModel.onPlayerClicked(item) // Abre os detalhes
                         }
                     }
-
+                    
                     if (state.filteredPlayers.isEmpty()) {
                         item {
-                            Box(Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
-                                Text(
-                                    "Nenhum jogador encontrado com estes filtros.",
-                                    color = Color.Gray
-                                )
+                            Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
+                                Text("Nenhum jogador encontrado.", color = Color.Gray)
                             }
                         }
                     }
                 }
             }
-            1
+
+            // POPUP DE DETALHES E CONFIRMAÇÃO
+            state.selectedPlayerForDetails?.let { item ->
+                PlayerDetailsDialog(
+                    item = item,
+                    canAfford = state.myBudget >= item.price,
+                    onDismiss = { screenModel.onDismissDialog() },
+                    onConfirm = { screenModel.buyPlayer(item) }
+                )
+            }
         }
     }
 
+    /**
+     * Cartão individual de cada jogador na lista.
+     */
     @Composable
-    private fun PlayerMarketCard(item: MarketItem, canAfford: Boolean, onBuy: () -> Unit) {
-        Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(2.dp)) {
+    private fun PlayerMarketCard(item: MarketItem, canAfford: Boolean, onClick: () -> Unit) {
+        Card(
+            modifier = Modifier.fillMaxWidth().clickable { onClick() }, // Clicar no cartão abre os detalhes
+            elevation = CardDefaults.cardElevation(2.dp)
+        ) {
             Row(
-                modifier = Modifier.padding(12.dp).fillMaxWidth(), verticalAlignment =
-                    Alignment.CenterVertically
+                modifier = Modifier.padding(12.dp).fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.width(50.dp)
-                )
-                {
-                    Text(
-                        item.player.mainPosition.name,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 12.sp
-                    )
+                // Indicador de Posição e Overall
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(50.dp)) {
+                    Text(item.player.mainPosition.name, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                     Box(
-                        modifier =
-                            Modifier.size(40.dp).clip(RoundedCornerShape(8.dp))
-                                .background(MaterialTheme.colorScheme.primary),
+                        modifier = Modifier.size(40.dp).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.primary),
                         contentAlignment = Alignment.Center
                     ) {
+                        Text(item.overall.toString(), fontWeight = FontWeight.Bold, color = Color.White)
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                // Informação Principal
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(item.player.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text("Clube: ${item.sellerClubName}", fontSize = 12.sp, color = Color.Gray)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(formatPrice(item.price), fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.secondary)
+                }
+
+                // Ícone indicativo
+                Icon(
+                    Icons.Filled.ShoppingCart,
+                    contentDescription = null,
+                    tint = if (canAfford) MaterialTheme.colorScheme.primary else Color.Gray.copy(alpha = 0.5f)
+                )
+            }
+        }
+    }
+
+    /**
+     * Dialog detalhado que mostra todos os atributos do jogador antes da compra.
+     */
+    @Composable
+    private fun PlayerDetailsDialog(
+        item: MarketItem,
+        canAfford: Boolean,
+        onDismiss: () -> Unit,
+        onConfirm: () -> Unit
+    ) {
+        val player = item.player
+
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = {
+                Column {
+                    Text(player.name, fontWeight = FontWeight.Bold)
+                    Text("${player.age} anos | ${player.mainPosition.name}", style = MaterialTheme.typography.bodySmall)
+                }
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Divider()
+                    
+                    // Secção de Atributos Físicos e Mentais
+                    Text("Atributos de Campo", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                    
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        AttributeItem("Velocidade", player.pace)
+                        AttributeItem("Força", player.strength)
+                    }
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        AttributeItem("Corte", player.tackling)
+                        AttributeItem("Pos. Def", player.defensivePositioning)
+                    }
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        AttributeItem("Passe", player.passing)
+                        AttributeItem("Visão", player.vision)
+                    }
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        AttributeItem("Drible", player.dribbling)
+                        AttributeItem("Finalização", player.finishing)
+                    }
+
+                    // Atributos de Guarda-Redes (Só mostra se for relevante)
+                    if (player.mainPosition == com.brunogarcia.footballempireclubmanager.domain.model.Position.GK) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("Guarda-Redes", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.secondary)
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            AttributeItem("Reflexos", player.gkReflexes)
+                            AttributeItem("Mãos", player.gkHandling)
+                        }
+                    }
+
+                    Divider(modifier = Modifier.padding(vertical = 8.dp))
+                    
+                    // Informação Financeira
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Preço de Venda:", fontWeight = FontWeight.Bold)
+                        Text(formatPrice(item.price), color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Bold)
+                    }
+
+                    if (!canAfford) {
                         Text(
-                            item.overall.toString(),
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
+                            "Não tens orçamento suficiente para esta transferência.",
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(top = 4.dp)
                         )
                     }
                 }
-                Spacer(modifier = Modifier.width(16.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(item.player.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                    Text(item.sellerClubName, fontSize = 12.sp, color = Color.Gray)
-                    Text(
-                        formatPrice(item.price), fontWeight = FontWeight.SemiBold, color =
-                            MaterialTheme.colorScheme.secondary
-                    )
+            },
+            confirmButton = {
+                Button(
+                    onClick = onConfirm,
+                    enabled = canAfford,
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                ) {
+                    Text("Confirmar Compra")
                 }
-                IconButton(onClick = onBuy, enabled = canAfford) {
-                    Icon(
-                        Icons.Filled.ShoppingCart, contentDescription = "Comprar",
-                        tint = if (canAfford) MaterialTheme.colorScheme.primary else Color.Gray
-                    )
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) {
+                    Text("Cancelar")
                 }
             }
+        )
+    }
+
+    /**
+     * Componente pequeno para mostrar um atributo (Nome: Valor)
+     */
+    @Composable
+    private fun AttributeItem(label: String, value: Int) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("$label: ", style = MaterialTheme.typography.bodySmall)
+            Text(
+                text = value.toString(),
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.Bold,
+                color = when {
+                    value >= 85 -> Color(0xFF1B5E20) // Verde forte
+                    value >= 70 -> Color(0xFF4CAF50) // Verde
+                    value >= 50 -> Color(0xFFFBC02D) // Amarelo
+                    else -> Color(0xFFD32F2F)        // Vermelho
+                }
+            )
         }
     }
 }
