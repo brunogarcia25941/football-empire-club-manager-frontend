@@ -3,15 +3,15 @@ package com.brunogarcia.footballempireclubmanager.presentation.screens.market
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,9 +24,11 @@ import cafe.adriel.voyager.koin.getScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 
-// Função para formatar o dinheiro
+
+// Função para formatar o dinheiro (ex: 1000000 -> 1.000.000 €)
 fun formatPrice(value: Double): String {
     val numberString = value.toLong().toString()
+    if (numberString.length <= 3) return "$numberString €"
     return numberString.reversed().chunked(3).joinToString(".").reversed() + " €"
 }
 
@@ -39,6 +41,8 @@ class TransferMarketScreen : Screen {
         val screenModel = getScreenModel<TransferMarketScreenModel>()
         val state by screenModel.state.collectAsState()
 
+        val positions = listOf("GK", "CB", "LB", "RB", "CDM", "CM", "CAM", "RW", "LW", "ST")
+
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -47,75 +51,131 @@ class TransferMarketScreen : Screen {
                         IconButton(onClick = { navigator.pop() }) {
                             Icon(Icons.Filled.ArrowBack, contentDescription = "Voltar")
                         }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                    }
                 )
             }
         ) { paddingValues ->
             Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
 
-                // Cabeçalho com o Orçamento
-                Surface(
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                    modifier = Modifier.fillMaxWidth()
+                // 1. Barra de Pesquisa
+                OutlinedTextField(
+                    value = state.searchQuery,
+                    onValueChange = { screenModel.onSearchQueryChanged(it) },
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    placeholder = { Text("Pesquisar jogador...") },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true
+                )
+
+                // 2. Filtros de Posição (Chips)
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(bottom = 8.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp).fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("Orçamento:", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                        Text(formatPrice(state.myBudget), fontWeight = FontWeight.ExtraBold, fontSize = 20.sp, color = MaterialTheme.colorScheme.primary)
+                    item {
+                        FilterChip(
+                            selected = state.selectedPosition == null,
+                            onClick = { screenModel.onPositionFilterChanged(null) },
+                            label = { Text("Todos") }
+                        )
+                    }
+                    items(positions) { pos ->
+                        FilterChip(
+                            selected = state.selectedPosition == pos,
+                            onClick = { screenModel.onPositionFilterChanged(pos) },
+                            label = { Text(pos) }
+                        )
                     }
                 }
 
-                // Lista de Jogadores
+                // 3. Orçamento
+                Surface(
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("O teu Orçamento:", fontWeight = FontWeight.Bold)
+                        Text(formatPrice(state.myBudget), fontWeight = FontWeight.ExtraBold)
+                    }
+                }
+
+                // 4. Lista de Jogadores Filtrada
                 LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(state.availablePlayers) { item ->
+                    items(state.filteredPlayers) { item ->
                         PlayerMarketCard(item = item, canAfford = state.myBudget >= item.price) {
                             screenModel.buyPlayer(item)
                         }
                     }
+
+                    if (state.filteredPlayers.isEmpty()) {
+                        item {
+                            Box(Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
+                                Text(
+                                    "Nenhum jogador encontrado com estes filtros.",
+                                    color = Color.Gray
+                                )
+                            }
+                        }
+                    }
                 }
             }
+            1
         }
     }
 
     @Composable
     private fun PlayerMarketCard(item: MarketItem, canAfford: Boolean, onBuy: () -> Unit) {
         Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(2.dp)) {
-            Row(modifier = Modifier.padding(12.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                // Posição e Overall
-                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(50.dp)) {
-                    Text(item.player.mainPosition.name, fontWeight = FontWeight.Bold)
+            Row(
+                modifier = Modifier.padding(12.dp).fillMaxWidth(), verticalAlignment =
+                    Alignment.CenterVertically
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.width(50.dp)
+                )
+                {
+                    Text(
+                        item.player.mainPosition.name,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp
+                    )
                     Box(
-                        modifier = Modifier.size(40.dp).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.primary),
+                        modifier =
+                            Modifier.size(40.dp).clip(RoundedCornerShape(8.dp))
+                                .background(MaterialTheme.colorScheme.primary),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(item.overall.toString(), fontWeight = FontWeight.Bold, color = Color.White)
+                        Text(
+                            item.overall.toString(),
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
                     }
                 }
-
                 Spacer(modifier = Modifier.width(16.dp))
-
-                // Nome, Clube e Preço
                 Column(modifier = Modifier.weight(1f)) {
                     Text(item.player.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                    Text("De: ${item.sellerClubName}", fontSize = 12.sp, color = Color.Gray)
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(formatPrice(item.price), fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.secondary)
+                    Text(item.sellerClubName, fontSize = 12.sp, color = Color.Gray)
+                    Text(
+                        formatPrice(item.price), fontWeight = FontWeight.SemiBold, color =
+                            MaterialTheme.colorScheme.secondary
+                    )
                 }
-
-                // Botão de Comprar
-                IconButton(
-                    onClick = onBuy,
-                    enabled = canAfford,
-                    colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.primary)
-                ) {
-                    Icon(Icons.Filled.ShoppingCart, contentDescription = "Comprar")
+                IconButton(onClick = onBuy, enabled = canAfford) {
+                    Icon(
+                        Icons.Filled.ShoppingCart, contentDescription = "Comprar",
+                        tint = if (canAfford) MaterialTheme.colorScheme.primary else Color.Gray
+                    )
                 }
             }
         }

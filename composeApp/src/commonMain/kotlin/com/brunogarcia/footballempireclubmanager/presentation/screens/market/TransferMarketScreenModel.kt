@@ -6,6 +6,7 @@ import com.brunogarcia.footballempireclubmanager.domain.repository.GameRepositor
 import com.brunogarcia.footballempireclubmanager.domain.usecase.BuyPlayerUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 
 data class MarketItem(
     val player: Player,
@@ -16,7 +17,10 @@ data class MarketItem(
 
 data class MarketState(
     val myBudget: Double = 0.0,
-    val availablePlayers: List<MarketItem> = emptyList()
+    val allMarketPlayers: List<MarketItem> = emptyList(), // Lista completa original
+    val filteredPlayers: List<MarketItem> = emptyList(),  // Lista que aparece no ecrã
+    val searchQuery: String = "",
+    val selectedPosition: String? = null // null significa "Todas"
 )
 
 class TransferMarketScreenModel(
@@ -53,10 +57,39 @@ class TransferMarketScreenModel(
             }
             .sortedByDescending { it.overall } // Ordenar do melhor para o pior
 
-        _state.value = MarketState(
-            myBudget = myClub.budget,
-            availablePlayers = playersForSale
-        )
+        _state.update {
+            it.copy(
+                myBudget = myClub.budget,
+                allMarketPlayers = playersForSale,
+                filteredPlayers = playersForSale
+            )
+        }
+    }
+
+
+    // Função chamada quando o utilizador escreve na barra de pesquisa
+    fun onSearchQueryChanged(query: String) {
+        _state.update { it.copy(searchQuery = query) }
+        applyFilters()
+    }
+
+    // Função chamada quando o utilizador clica numa posição (GK, CB, ST, etc)
+    fun onPositionFilterChanged(pos: String?) {
+        _state.update { it.copy(selectedPosition = pos) }
+        applyFilters()
+    }
+
+    private fun applyFilters() {
+        _state.update { currentState ->
+            val filtered = currentState.allMarketPlayers.filter { item ->
+                val matchesSearch =
+                    item.player.name.contains(currentState.searchQuery, ignoreCase = true)
+                val matchesPosition = currentState.selectedPosition == null ||
+                        item.player.mainPosition.name == currentState.selectedPosition
+                matchesSearch && matchesPosition
+            }
+            currentState.copy(filteredPlayers = filtered)
+        }
     }
 
     fun buyPlayer(item: MarketItem) {
