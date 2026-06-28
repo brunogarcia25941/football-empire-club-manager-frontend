@@ -25,6 +25,7 @@ import cafe.adriel.voyager.koin.getScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.brunogarcia.footballempireclubmanager.domain.model.Player
+import com.brunogarcia.footballempireclubmanager.presentation.screens.facilities.formatMoney
 
 class SquadScreen : Screen {
 
@@ -67,7 +68,11 @@ class SquadScreen : Screen {
                 state.selectedPlayer?.let { player ->
                     PlayerDetailsDialog(
                         player = player,
-                        onDismiss = { screenModel.onDismissDialog() }
+                        onDismiss = { screenModel.onDismissDialog() },
+                        onToggleListing = { screenModel.toggleListing(player) },
+                        onRenewContract = { screenModel.renewContract(player) },
+                        onAcceptOffer = { screenModel.acceptOffer(player) },
+                        onRejectOffer = { screenModel.rejectOffer(player) }
                     )
                 }
             }
@@ -148,11 +153,15 @@ class SquadScreen : Screen {
         }
     }
 
-    /**
-     * Diálogo que exibe todos os atributos técnicos e físicos do jogador.
-     */
     @Composable
-    private fun PlayerDetailsDialog(player: Player, onDismiss: () -> Unit) {
+    private fun PlayerDetailsDialog(
+        player: Player,
+        onDismiss: () -> Unit,
+        onToggleListing: () -> Unit,
+        onRenewContract: () -> Unit,
+        onAcceptOffer: () -> Unit,
+        onRejectOffer: () -> Unit
+    ) {
         AlertDialog(
             onDismissRequest = onDismiss,
             title = {
@@ -167,7 +176,7 @@ class SquadScreen : Screen {
             },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Divider()
+                    HorizontalDivider()
 
                     // Atributos de Campo
                     Text("Capacidades Técnicas", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
@@ -206,7 +215,7 @@ class SquadScreen : Screen {
                         }
                     }
 
-                    Divider(modifier = Modifier.padding(vertical = 8.dp))
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                     
                     // Morale e Estado
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -216,6 +225,64 @@ class SquadScreen : Screen {
                             fontWeight = FontWeight.Bold,
                             color = if (player.morale > 70) Color(0xFF4CAF50) else Color.Red
                         )
+                    }
+
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+                    // Contrato e Gestão de Mercado (MVP Opção C)
+                    Text("Contrato e Mercado", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                    
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Text("Contrato: ${player.contractYears} anos", style = MaterialTheme.typography.bodyMedium)
+                        val overall = player.getEffectiveOverall(player.mainPosition)
+                        val renewalCost = (overall * overall * 100).toDouble()
+                        TextButton(onClick = onRenewContract) {
+                            Text("Renovar (+3a) - ${formatMoney(renewalCost)}", fontSize = 12.sp)
+                        }
+                    }
+
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = if (player.isListed) "Listado para Venda" else "Não Listado",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = if (player.isListed) MaterialTheme.colorScheme.primary else Color.Gray
+                        )
+                        TextButton(onClick = onToggleListing) {
+                            Text(if (player.isListed) "Retirar da Lista" else "Colocar à Venda", fontSize = 12.sp)
+                        }
+                    }
+
+                    // Se houver propostas de transferência ativas da IA
+                    player.transferOffer?.let { offer ->
+                        Card(
+                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                        ) {
+                            Column(modifier = Modifier.padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("Proposta de Compra Recebida!", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                                Text("Clube: ${player.offerClubName}", fontSize = 12.sp)
+                                Text("Valor: ${formatMoney(offer)}", fontWeight = FontWeight.ExtraBold, fontSize = 18.sp, color = MaterialTheme.colorScheme.primary)
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                                    Button(
+                                        onClick = onAcceptOffer,
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
+                                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+                                        modifier = Modifier.height(36.dp)
+                                    ) {
+                                        Text("Aceitar", color = Color.White, fontSize = 12.sp)
+                                    }
+                                    Button(
+                                        onClick = onRejectOffer,
+                                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+                                        modifier = Modifier.height(36.dp)
+                                    ) {
+                                        Text("Rejeitar", color = Color.White, fontSize = 12.sp)
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             },

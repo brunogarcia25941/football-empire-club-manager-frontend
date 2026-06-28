@@ -64,4 +64,111 @@ class SquadScreenModel(
     fun onDismissDialog() {
         _state.update { it.copy(selectedPlayer = null) }
     }
+
+    /**
+     * Coloca ou retira um jogador da lista de transferências.
+     */
+    fun toggleListing(player: Player) {
+        val allPlayers = repository.getAllPlayers().toMutableList()
+        val index = allPlayers.indexOfFirst { it.id == player.id }
+        if (index != -1) {
+            val updatedPlayer = allPlayers[index].copy(isListed = !allPlayers[index].isListed)
+            allPlayers[index] = updatedPlayer
+            repository.updateClubsAndPlayers(repository.getAllClubs(), allPlayers)
+            repository.saveGameToDisk()
+
+            _state.update { it.copy(selectedPlayer = updatedPlayer) }
+            loadSquad()
+        }
+    }
+
+    /**
+     * Renova o contrato do jogador por mais 3 anos.
+     * Custa uma taxa de assinatura de 10% do valor do jogador (OVR^2 * 100 €).
+     */
+    fun renewContract(player: Player) {
+        val userClubId = repository.getUserClubId()
+        val allClubs = repository.getAllClubs().toMutableList()
+        val allPlayers = repository.getAllPlayers().toMutableList()
+        val clubIndex = allClubs.indexOfFirst { it.id == userClubId }
+        val playerIndex = allPlayers.indexOfFirst { it.id == player.id }
+
+        if (clubIndex != -1 && playerIndex != -1) {
+            val club = allClubs[clubIndex]
+            val overall = player.getEffectiveOverall(player.mainPosition)
+            val renewalCost = (overall * overall * 100).toDouble()
+
+            if (club.budget >= renewalCost) {
+                allClubs[clubIndex] = club.copy(budget = club.budget - renewalCost)
+                val updatedPlayer = allPlayers[playerIndex].copy(contractYears = allPlayers[playerIndex].contractYears + 3)
+                allPlayers[playerIndex] = updatedPlayer
+
+                repository.updateClubsAndPlayers(allClubs, allPlayers)
+                repository.saveGameToDisk()
+
+                _state.update { it.copy(selectedPlayer = updatedPlayer) }
+                loadSquad()
+            }
+        }
+    }
+
+    /**
+     * Aceita a proposta de transferência da IA, vendendo o jogador.
+     */
+    fun acceptOffer(player: Player) {
+        val userClubId = repository.getUserClubId()
+        val allClubs = repository.getAllClubs().toMutableList()
+        val allPlayers = repository.getAllPlayers().toMutableList()
+
+        val clubIndex = allClubs.indexOfFirst { it.id == userClubId }
+        val playerIndex = allPlayers.indexOfFirst { it.id == player.id }
+        val offerAmount = player.transferOffer ?: 0.0
+
+        if (clubIndex != -1 && playerIndex != -1 && offerAmount > 0.0) {
+            val club = allClubs[clubIndex]
+
+            // 1. Adiciona o dinheiro da venda ao orçamento do utilizador
+            allClubs[clubIndex] = club.copy(budget = club.budget + offerAmount)
+
+            // 2. Transfere o jogador para o clube comprador
+            val buyerClub = allClubs.find { it.name == player.offerClubName }
+            val newClubId = buyerClub?.id ?: ""
+
+            val updatedPlayer = allPlayers[playerIndex].copy(
+                clubId = newClubId,
+                isListed = false,
+                transferOffer = null,
+                offerClubName = null,
+                contractYears = 2 // Novo contrato com o novo clube
+            )
+            allPlayers[playerIndex] = updatedPlayer
+
+            repository.updateClubsAndPlayers(allClubs, allPlayers)
+            repository.saveGameToDisk()
+
+            // Fecha o diálogo de detalhes (já não é nosso)
+            _state.update { it.copy(selectedPlayer = null) }
+            loadSquad()
+        }
+    }
+
+    /**
+     * Rejeita a proposta de transferência da IA.
+     */
+    fun rejectOffer(player: Player) {
+        val allPlayers = repository.getAllPlayers().toMutableList()
+        val index = allPlayers.indexOfFirst { it.id == player.id }
+        if (index != -1) {
+            val updatedPlayer = allPlayers[index].copy(
+                transferOffer = null,
+                offerClubName = null
+            )
+            allPlayers[index] = updatedPlayer
+            repository.updateClubsAndPlayers(repository.getAllClubs(), allPlayers)
+            repository.saveGameToDisk()
+
+            _state.update { it.copy(selectedPlayer = updatedPlayer) }
+            loadSquad()
+        }
+    }
 }

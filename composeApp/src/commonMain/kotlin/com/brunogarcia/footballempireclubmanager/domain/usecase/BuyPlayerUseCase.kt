@@ -30,8 +30,8 @@ class BuyPlayerUseCase(private val repository: GameRepository) {
                 allClubs[sellerIndex] = sellerClub.copy(budget = sellerClub.budget + price)
             }
 
-            // 3. Transfere o jogador
-            allPlayers[playerIndex] = player.copy(clubId = userClubId)
+            // 3. Transfere o jogador e dá-lhe um contrato de 3 anos
+            allPlayers[playerIndex] = player.copy(clubId = userClubId, contractYears = 3, isListed = false)
 
             // 4. Guarda tudo na Base de Dados (e no disco)
             repository.updateClubsAndPlayers(allClubs, allPlayers)

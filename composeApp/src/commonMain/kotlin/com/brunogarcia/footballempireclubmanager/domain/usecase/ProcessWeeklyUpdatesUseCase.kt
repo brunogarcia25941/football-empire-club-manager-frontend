@@ -16,7 +16,8 @@ class ProcessWeeklyUpdatesUseCase {
     fun execute(
         allClubs: List<Club>,
         allPlayers: List<Player>,
-        weeklyResults: List<MatchResult>
+        weeklyResults: List<MatchResult>,
+        userClubId: String
     ) {
         // 1. Processar Cansaço e Recuperação (Stamina)
         updateStaminaAndFitness(allClubs, allPlayers, weeklyResults)
@@ -24,7 +25,10 @@ class ProcessWeeklyUpdatesUseCase {
         // 2. Processar Evolução de Atributos (Treinos)
         processPlayerEvolution(allClubs, allPlayers)
 
-        // 3. Processar Finanças (Receitas e Despesas)
+        // 3. Simular propostas de clubes IA para jogadores do utilizador
+        simulateAIOffers(allClubs, allPlayers, userClubId)
+
+        // 4. Processar Finanças (Receitas e Despesas)
         updateFinances(allClubs, allPlayers, weeklyResults)
     }
 
@@ -155,6 +159,48 @@ class ProcessWeeklyUpdatesUseCase {
             }
 
             club.budget = club.budget + weeklyIncome - weeklyExpenses
+        }
+    }
+
+    /**
+     * Simula propostas de transferência vindas de clubes controlados por IA.
+     */
+    private fun simulateAIOffers(allClubs: List<Club>, allPlayers: List<Player>, userClubId: String) {
+        val userPlayers = allPlayers.filter { it.clubId == userClubId }
+        val aiClubs = allClubs.filter { it.id != userClubId }
+
+        if (aiClubs.isEmpty()) return
+
+        userPlayers.forEach { player ->
+            // Se o jogador já tem uma proposta ativa, há 15% de chance de expirar por falta de resposta
+            if (player.transferOffer != null) {
+                if (Random.nextInt(1, 101) <= 15) {
+                    player.transferOffer = null
+                    player.offerClubName = null
+                }
+                return@forEach
+            }
+
+            // Chance de receber proposta: 25% se listado, 3% se não listado (proposta não solicitada)
+            val offerChance = if (player.isListed) 25 else 3
+            if (Random.nextInt(1, 101) <= offerChance) {
+                val biddingClub = aiClubs.random()
+                val overall = player.getEffectiveOverall(player.mainPosition)
+                
+                // Valor de mercado base (Overall^2 * 1000)
+                val baseValue = (overall * overall * 1000).toDouble()
+                
+                // A proposta varia entre 80% e 125% do valor base.
+                // Se listado, a IA tenta comprar ligeiramente mais barato.
+                val multiplier = if (player.isListed) {
+                    Random.nextDouble(0.80, 1.10)
+                } else {
+                    Random.nextDouble(0.95, 1.25)
+                }
+                
+                player.transferOffer = baseValue * multiplier
+                player.offerClubName = biddingClub.name
+            }
         }
     }
 }

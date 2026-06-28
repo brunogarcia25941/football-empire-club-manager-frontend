@@ -49,12 +49,41 @@ class StartNewSeasonUseCase(
             club.copy(budget = club.budget + prize)
         }
 
-        // 4. Envelhecer todos os jogadores em +1 ano e repor a stamina a 100% (férias de verão)
+        // 4. Processar contratos e envelhecimento (+1 ano) com férias (stamina 100%)
         val updatedPlayers = repository.getAllPlayers().map { player ->
+            val newAge = player.age + 1
+            var newContractYears = player.contractYears - 1
+            var newClubId = player.clubId
+            var newIsListed = player.isListed
+
+            if (newContractYears <= 0) {
+                // Fim de contrato!
+                if (player.clubId == userClubId) {
+                    // Jogador do utilizador é libertado a custo zero (fica livre / clubId vazio)
+                    newClubId = ""
+                    newIsListed = false
+                    newContractYears = 1 // Contrato padrão para jogador livre
+                } else if (player.clubId.isNotEmpty()) {
+                    // Clubes IA renovam se for jovem/auge (< 33 anos), libertam se for veterano (>= 33 anos)
+                    if (player.age < 33) {
+                        newContractYears = 2 // Renova por mais 2 anos
+                    } else {
+                        newClubId = "" // Libertado (fica livre)
+                        newIsListed = false
+                        newContractYears = 1
+                    }
+                }
+            }
+
             player.copy(
-                age = player.age + 1,
-                stamina = 100, // Recupera totalmente durante o defeso
-                morale = 80    // Reinicia a moral a um valor neutro/positivo
+                age = newAge,
+                stamina = 100,
+                morale = 80,
+                contractYears = newContractYears,
+                clubId = newClubId,
+                isListed = newIsListed,
+                transferOffer = null, // Limpa propostas pendentes do ano anterior
+                offerClubName = null
             )
         }
 

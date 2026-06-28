@@ -46,7 +46,8 @@ class AdvanceTimeUseCase(
         processWeeklyUpdatesUseCase.execute(
             allClubs = allClubs,
             allPlayers = allPlayers,
-            weeklyResults = weeklyResults
+            weeklyResults = weeklyResults,
+            userClubId = userClubId
         )
 
         // 4. Gravar tudo de volta na "Base de Dados" (Repositório)

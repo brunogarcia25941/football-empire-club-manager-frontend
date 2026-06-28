@@ -36,7 +36,13 @@ data class Player(
     // (Jogadores de campo terão isto a um valor muito baixo, tipo 5 ou 10)
     var gkReflexes: Int, // Reflexos
     var gkHandling: Int, // Jogo de Mãos
-    var gkAgility: Int   // Agilidade
+    var gkAgility: Int,   // Agilidade
+
+    // --- Gestão de Contratos e Transferências (Opção C) ---
+    var contractYears: Int = 3,
+    var isListed: Boolean = false,
+    var transferOffer: Double? = null,
+    var offerClubName: String? = null
 ) {
     /**
      * Calcula o Overall Efetivo do jogador se jogar na [targetPosition].
