@@ -26,7 +26,7 @@ class TacticsScreenModel(private val repository: GameRepository) : ScreenModel {
         loadTactics()
     }
 
-    private fun loadTactics() {
+    fun loadTactics() {
         val userClubId = repository.getUserClubId()
         val squad = repository.getAllPlayers().filter { it.clubId == userClubId }
         val saved11 = repository.getUserStarting11()
@@ -55,6 +55,52 @@ class TacticsScreenModel(private val repository: GameRepository) : ScreenModel {
 
     fun closePlayerSelection() {
         _state.value = _state.value.copy(selectedSlotId = null)
+    }
+
+    // Seleciona automaticamente o melhor 11 possível para o utilizador
+    fun autoPickStarting11() {
+        val currentState = _state.value
+        val availablePlayers = currentState.squad.toMutableList()
+        val assignedSlots = mutableListOf<TacticSlot>()
+        
+        val roles = listOf(
+            Position.GK,
+            Position.RB, Position.CB, Position.CB, Position.LB,
+            Position.CDM, Position.CM, Position.CAM,
+            Position.RW, Position.LW, Position.ST
+        )
+        
+        val selectedPlayerIds = mutableSetOf<String>()
+        
+        // 1ª Passagem: Tentar preencher com jogadores na sua posição natural (com melhor overall)
+        roles.forEachIndexed { index, role ->
+            val bestFit = availablePlayers
+                .filter { it.mainPosition == role && !selectedPlayerIds.contains(it.id) }
+                .maxByOrNull { it.getEffectiveOverall(role) }
+                
+            if (bestFit != null) {
+                assignedSlots.add(TacticSlot(id = index, role = role, player = bestFit))
+                selectedPlayerIds.add(bestFit.id)
+            } else {
+                assignedSlots.add(TacticSlot(id = index, role = role, player = null))
+            }
+        }
+        
+        // 2ª Passagem: Preencher posições vazias com os melhores suplentes restantes
+        assignedSlots.forEachIndexed { index, slot ->
+            if (slot.player == null) {
+                val remainingPlayers = availablePlayers.filter { !selectedPlayerIds.contains(it.id) }
+                val fallbackPlayer = remainingPlayers.maxByOrNull { it.getEffectiveOverall(slot.role) }
+                
+                if (fallbackPlayer != null) {
+                    assignedSlots[index] = slot.copy(player = fallbackPlayer)
+                    selectedPlayerIds.add(fallbackPlayer.id)
+                }
+            }
+        }
+        
+        _state.value = currentState.copy(slots = assignedSlots)
+        saveToRepository(assignedSlots)
     }
 
     // Coloca o jogador no campo

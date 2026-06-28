@@ -13,6 +13,7 @@ import com.brunogarcia.footballempireclubmanager.presentation.screens.squad.Squa
 import com.brunogarcia.footballempireclubmanager.presentation.screens.tactics.TacticsScreenModel
 import org.koin.dsl.module
 import com.brunogarcia.footballempireclubmanager.presentation.screens.market.TransferMarketScreenModel
+import com.brunogarcia.footballempireclubmanager.presentation.screens.newseason.NewSeasonScreenModel
 
 val appModule = module {
     // 1. O nosso Repositório (Existe apenas uma cópia para o jogo todo -> single)
@@ -25,6 +26,7 @@ val appModule = module {
     factory { CalculateLeagueTableUseCase() }
     factory { UpgradeFacilityUseCase(get()) }
     factory { BuyPlayerUseCase(get()) }
+    factory { StartNewSeasonUseCase(get(), get(), get()) }
 
     // O AdvanceTime precisa do Repositório e dos outros dois UseCases.
     // O "get()" diz ao Koin: "Procura aqui na lista em cima e injeta automaticamente!"
@@ -40,4 +42,5 @@ val appModule = module {
     factory { MatchReportScreenModel(get()) }
     factory { FacilitiesScreenModel(get(), get()) }
     factory { TransferMarketScreenModel(get(), get()) }
+    factory { NewSeasonScreenModel(get(), get(), get()) }
 }

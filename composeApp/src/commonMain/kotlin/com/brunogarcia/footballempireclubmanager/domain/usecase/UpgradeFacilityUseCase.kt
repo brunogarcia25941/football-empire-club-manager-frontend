@@ -34,17 +34,17 @@ class UpgradeFacilityUseCase(private val repository: GameRepository) {
                 }
             }
             FacilityType.TRAINING_CENTER -> {
-                // Como não temos um "nível" explícito de treino, vamos usar a reputação ou
-                // assumir um custo fixo para melhorar a "lealdade/reputação" que afeta o clube.
-                // No futuro vamos ter de adicionar 'trainigLevel' ao modelo Club.kt e meter isto a funcionar como deve de ser
-                val upgradeCost = 2500000.0 // 2.5 Milhões
-                if (club.budget >= upgradeCost) {
-                    val updatedClub = club.copy(
-                        budget = club.budget - upgradeCost,
-                        fanBaseLoyalty = club.fanBaseLoyalty + 5 // Mais lealdade = mais adeptos = mais dinheiro
-                    )
-                    allClubs[clubIndex] = updatedClub
-                    success = true
+                val currentLevel = club.trainingFacilities
+                if (currentLevel < 10) {
+                    val upgradeCost = calculateTrainingUpgradeCost(currentLevel)
+                    if (club.budget >= upgradeCost) {
+                        val updatedClub = club.copy(
+                            budget = club.budget - upgradeCost,
+                            trainingFacilities = currentLevel + 1 // Evolui de facto o nível
+                        )
+                        allClubs[clubIndex] = updatedClub
+                        success = true
+                    }
                 }
             }
         }
@@ -60,5 +60,10 @@ class UpgradeFacilityUseCase(private val repository: GameRepository) {
     // O custo aumenta quanto maior for o estádio
     fun calculateStadiumUpgradeCost(currentCapacity: Int): Double {
         return (currentCapacity / 1000) * 500000.0 // Ex: 50.000 lugares = 25 Milhões para expandir
+    }
+
+    // O custo do centro de treinos aumenta progressivamente com base no nível atual (1.5M por nível)
+    fun calculateTrainingUpgradeCost(currentLevel: Int): Double {
+        return currentLevel * 1500000.0
     }
 }

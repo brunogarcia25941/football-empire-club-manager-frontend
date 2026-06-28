@@ -20,6 +20,7 @@ import com.brunogarcia.footballempireclubmanager.presentation.screens.facilities
 import com.brunogarcia.footballempireclubmanager.presentation.screens.market.TransferMarketScreen
 import com.brunogarcia.footballempireclubmanager.presentation.screens.matchreport.MatchReportScreen
 import com.brunogarcia.footballempireclubmanager.presentation.screens.squad.SquadScreen
+import com.brunogarcia.footballempireclubmanager.presentation.screens.newseason.NewSeasonScreen
 
 class DashboardScreen : Screen {
 
@@ -55,12 +56,15 @@ class DashboardScreen : Screen {
                                 // Quando terminar a simulação, abre o Relatório da Jornada
                                 navigator.push(MatchReportScreen())
                             }
+                        } else {
+                            // Navega para o ecrã de fim de época para ver classificação e obter prémios
+                            navigator.push(NewSeasonScreen())
                         }
                     },
                     icon = { Icon(Icons.Filled.PlayArrow, contentDescription = "Avançar") },
-                    text = { Text(if (isEndOfSeason) "Época Terminada" else "Avançar Semana") },
-                    // Fica cinzento se a época tiver acabado
-                    containerColor = if (isEndOfSeason) Color.Gray else MaterialTheme.colorScheme.primary,
+                    text = { Text(if (isEndOfSeason) "Ver Fim de Época" else "Avançar Semana") },
+                    // Cor secundária ativa no final para destacar o botão "Ver Fim de Época"
+                    containerColor = if (isEndOfSeason) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary,
                     contentColor = Color.White
                 )
             }

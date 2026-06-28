@@ -31,7 +31,7 @@ class SquadScreenModel(
     /**
      * Carrega e ordena os jogadores do clube do utilizador.
      */
-    private fun loadSquad() {
+    fun loadSquad() {
         val userClubId = repository.getUserClubId()
         val clubName = repository.getAllClubs().find { it.id == userClubId }?.name ?: "Plantel"
 

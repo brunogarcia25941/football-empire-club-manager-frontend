@@ -41,8 +41,10 @@ class ProcessWeeklyUpdatesUseCase {
             // Base de recuperação semanal
             var recovery = 15 + trainingBonus 
             
-            // Se o jogador jogou na jornada passada, perde stamina (cerca de 30-35)
-            val playedThisWeek = weeklyResults.any { it.homeClubId == player.clubId || it.awayClubId == player.clubId }
+            // Se o jogador jogou na jornada passada (foi titular em qualquer jogo), perde stamina (cerca de 30-35)
+            val playedThisWeek = weeklyResults.any { 
+                it.homeLineup.contains(player.id) || it.awayLineup.contains(player.id) 
+            }
             val loss = if (playedThisWeek) 35 else 0
 
             player.stamina = max(0, min(100, player.stamina + recovery - loss))

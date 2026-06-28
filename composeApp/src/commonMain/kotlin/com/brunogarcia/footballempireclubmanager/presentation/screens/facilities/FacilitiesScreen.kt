@@ -89,16 +89,19 @@ class FacilitiesScreen : Screen {
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
                                 Text("Centro de Treinos", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                                Text("Aumenta a lealdade dos fãs e desempenho", color = Color.Gray)
+                                Text("Nível: ${state.trainingLevel}/10 (Acelera recuperação física)", color = Color.Gray)
                             }
                         }
                         Spacer(modifier = Modifier.height(16.dp))
                         Button(
                             onClick = { screenModel.upgradeFacility(FacilityType.TRAINING_CENTER) },
                             modifier = Modifier.fillMaxWidth(),
-                            enabled = state.budget >= state.trainingUpgradeCost
+                            enabled = !state.isTrainingMaxed && state.budget >= state.trainingUpgradeCost
                         ) {
-                            Text("Melhorar Centro - ${formatMoney(state.trainingUpgradeCost)}")
+                            Text(
+                                if (state.isTrainingMaxed) "Nível Máximo Atingido"
+                                else "Melhorar Centro (+1 Nível) - ${formatMoney(state.trainingUpgradeCost)}"
+                            )
                         }
                     }
                 }

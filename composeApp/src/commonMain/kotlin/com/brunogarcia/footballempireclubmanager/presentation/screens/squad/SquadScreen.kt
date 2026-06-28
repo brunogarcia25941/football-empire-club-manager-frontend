@@ -12,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,6 +34,11 @@ class SquadScreen : Screen {
         val navigator = LocalNavigator.currentOrThrow
         val screenModel = getScreenModel<SquadScreenModel>()
         val state by screenModel.state.collectAsState()
+
+        // Garante que o plantel é atualizado sempre que o ecrã fica visível
+        LaunchedEffect(Unit) {
+            screenModel.loadSquad()
+        }
 
         Scaffold(
             topBar = {

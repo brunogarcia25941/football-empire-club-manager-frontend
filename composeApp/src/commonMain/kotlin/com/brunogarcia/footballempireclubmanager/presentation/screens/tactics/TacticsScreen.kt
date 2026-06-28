@@ -13,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,6 +33,11 @@ class TacticsScreen : Screen {
         val screenModel = getScreenModel<TacticsScreenModel>()
         val state by screenModel.state.collectAsState()
 
+        // Garante que o 11 inicial e o plantel do ecrã tático são atualizados sempre que o ecrã fica visível
+        LaunchedEffect(Unit) {
+            screenModel.loadTactics()
+        }
+
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -43,6 +49,18 @@ class TacticsScreen : Screen {
                         if (state.selectedSlotId != null) {
                             IconButton(onClick = { screenModel.closePlayerSelection() }) {
                                 Icon(Icons.Filled.Clear, contentDescription = "Cancelar")
+                            }
+                        }
+                    },
+                    actions = {
+                        // Botão para auto-escalar o 11 inicial no menu principal das táticas
+                        if (state.selectedSlotId == null) {
+                            TextButton(onClick = { screenModel.autoPickStarting11() }) {
+                                Text(
+                                    text = "Auto-Escalar",
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
                             }
                         }
                     },

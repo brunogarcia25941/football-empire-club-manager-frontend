@@ -26,6 +26,8 @@ class GameRepositoryImpl : GameRepository {
         clubs.clear()
         players.clear()
         matchHistory.clear()
+        userStarting11.clear() // Limpa a escalação do jogo anterior
+        fixtures.clear()       // Limpa o calendário do jogo anterior
 
         clubs.addAll(newClubs)
         players.addAll(newPlayers)

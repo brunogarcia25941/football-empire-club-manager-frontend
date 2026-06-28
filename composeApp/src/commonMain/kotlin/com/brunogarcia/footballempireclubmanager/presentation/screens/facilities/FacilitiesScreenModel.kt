@@ -11,7 +11,9 @@ data class FacilitiesState(
     val budget: Double = 0.0,
     val stadiumCapacity: Int = 0,
     val stadiumUpgradeCost: Double = 0.0,
-    val trainingUpgradeCost: Double = 2500000.0
+    val trainingLevel: Int = 1,
+    val trainingUpgradeCost: Double = 0.0,
+    val isTrainingMaxed: Boolean = false
 )
 
 class FacilitiesScreenModel(
@@ -34,7 +36,10 @@ class FacilitiesScreenModel(
             _state.value = FacilitiesState(
                 budget = club.budget,
                 stadiumCapacity = club.stadiumCapacity,
-                stadiumUpgradeCost = upgradeFacilityUseCase.calculateStadiumUpgradeCost(club.stadiumCapacity)
+                stadiumUpgradeCost = upgradeFacilityUseCase.calculateStadiumUpgradeCost(club.stadiumCapacity),
+                trainingLevel = club.trainingFacilities,
+                trainingUpgradeCost = upgradeFacilityUseCase.calculateTrainingUpgradeCost(club.trainingFacilities),
+                isTrainingMaxed = club.trainingFacilities >= 10
             )
         }
     }

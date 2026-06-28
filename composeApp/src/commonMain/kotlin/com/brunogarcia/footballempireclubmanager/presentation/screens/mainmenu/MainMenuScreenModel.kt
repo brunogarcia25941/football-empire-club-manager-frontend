@@ -40,6 +40,9 @@ class MainMenuScreenModel(
                 val fixtures = generateFixturesUseCase.execute(initialData.clubs)
                 repository.saveFixtures(fixtures)
 
+                // Gravar o estado inicial do novo jogo no disco (substituindo qualquer save antigo)
+                repository.saveGameToDisk()
+
                 // Avisa o Ecrã que já pode mudar de página
                 onFinished()
 
