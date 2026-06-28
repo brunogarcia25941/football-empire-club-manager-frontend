@@ -43,4 +43,5 @@ val appModule = module {
     factory { FacilitiesScreenModel(get(), get()) }
     factory { TransferMarketScreenModel(get(), get()) }
     factory { NewSeasonScreenModel(get(), get(), get()) }
+    factory { com.brunogarcia.footballempireclubmanager.presentation.screens.youthacademy.YouthAcademyScreenModel(get()) }
 }

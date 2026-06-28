@@ -13,7 +13,10 @@ data class FacilitiesState(
     val stadiumUpgradeCost: Double = 0.0,
     val trainingLevel: Int = 1,
     val trainingUpgradeCost: Double = 0.0,
-    val isTrainingMaxed: Boolean = false
+    val isTrainingMaxed: Boolean = false,
+    val youthAcademyLevel: Int = 1,
+    val youthAcademyUpgradeCost: Double = 0.0,
+    val isYouthAcademyMaxed: Boolean = false
 )
 
 class FacilitiesScreenModel(
@@ -39,7 +42,10 @@ class FacilitiesScreenModel(
                 stadiumUpgradeCost = upgradeFacilityUseCase.calculateStadiumUpgradeCost(club.stadiumCapacity),
                 trainingLevel = club.trainingFacilities,
                 trainingUpgradeCost = upgradeFacilityUseCase.calculateTrainingUpgradeCost(club.trainingFacilities),
-                isTrainingMaxed = club.trainingFacilities >= 10
+                isTrainingMaxed = club.trainingFacilities >= 10,
+                youthAcademyLevel = club.youthAcademyLevel,
+                youthAcademyUpgradeCost = upgradeFacilityUseCase.calculateYouthAcademyUpgradeCost(club.youthAcademyLevel),
+                isYouthAcademyMaxed = club.youthAcademyLevel >= 10
             )
         }
     }

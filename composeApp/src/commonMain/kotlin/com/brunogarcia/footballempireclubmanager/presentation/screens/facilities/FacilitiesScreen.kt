@@ -5,6 +5,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -101,6 +102,33 @@ class FacilitiesScreen : Screen {
                             Text(
                                 if (state.isTrainingMaxed) "Nível Máximo Atingido"
                                 else "Melhorar Centro (+1 Nível) - ${formatMoney(state.trainingUpgradeCost)}"
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Cartão: Academia de Juniores
+                Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(2.dp)) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Filled.Star, contentDescription = "Academia", modifier = Modifier.size(32.dp))
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Text("Academia de Juniores", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                                Text("Nível: ${state.youthAcademyLevel}/10 (Gera melhores juniores)", color = Color.Gray)
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(
+                            onClick = { screenModel.upgradeFacility(FacilityType.YOUTH_ACADEMY) },
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = !state.isYouthAcademyMaxed && state.budget >= state.youthAcademyUpgradeCost
+                        ) {
+                            Text(
+                                if (state.isYouthAcademyMaxed) "Nível Máximo Atingido"
+                                else "Melhorar Academia (+1 Nível) - ${formatMoney(state.youthAcademyUpgradeCost)}"
                             )
                         }
                     }

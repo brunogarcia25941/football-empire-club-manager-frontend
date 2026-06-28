@@ -5,7 +5,8 @@ import com.brunogarcia.footballempireclubmanager.domain.repository.GameRepositor
 
 enum class FacilityType {
     STADIUM,
-    TRAINING_CENTER
+    TRAINING_CENTER,
+    YOUTH_ACADEMY
 }
 
 class UpgradeFacilityUseCase(private val repository: GameRepository) {
@@ -47,6 +48,20 @@ class UpgradeFacilityUseCase(private val repository: GameRepository) {
                     }
                 }
             }
+            FacilityType.YOUTH_ACADEMY -> {
+                val currentLevel = club.youthAcademyLevel
+                if (currentLevel < 10) {
+                    val upgradeCost = calculateYouthAcademyUpgradeCost(currentLevel)
+                    if (club.budget >= upgradeCost) {
+                        val updatedClub = club.copy(
+                            budget = club.budget - upgradeCost,
+                            youthAcademyLevel = currentLevel + 1 // Evolui o nível da academia
+                        )
+                        allClubs[clubIndex] = updatedClub
+                        success = true
+                    }
+                }
+            }
         }
 
         if (success) {
@@ -65,5 +80,10 @@ class UpgradeFacilityUseCase(private val repository: GameRepository) {
     // O custo do centro de treinos aumenta progressivamente com base no nível atual (1.5M por nível)
     fun calculateTrainingUpgradeCost(currentLevel: Int): Double {
         return currentLevel * 1500000.0
+    }
+
+    // O custo da academia de juniores aumenta progressivamente com base no nível atual (1.0M por nível)
+    fun calculateYouthAcademyUpgradeCost(currentLevel: Int): Double {
+        return currentLevel * 1000000.0
     }
 }

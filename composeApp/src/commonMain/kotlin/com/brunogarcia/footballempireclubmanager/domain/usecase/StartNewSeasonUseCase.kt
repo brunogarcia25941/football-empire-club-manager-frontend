@@ -50,7 +50,9 @@ class StartNewSeasonUseCase(
         }
 
         // 4. Processar contratos e envelhecimento (+1 ano) com férias (stamina 100%)
-        val updatedPlayers = repository.getAllPlayers().map { player ->
+        val basePlayersList = repository.getAllPlayers().filterNot { it.clubId == "YOUTH_$userClubId" }
+
+        val updatedPlayers = basePlayersList.map { player ->
             val newAge = player.age + 1
             var newContractYears = player.contractYears - 1
             var newClubId = player.clubId
@@ -85,6 +87,14 @@ class StartNewSeasonUseCase(
                 transferOffer = null, // Limpa propostas pendentes do ano anterior
                 offerClubName = null
             )
+        }.toMutableList()
+
+        // 4b. Gerar novos jovens da Academia (Juniores) no final da época
+        val userClub = updatedClubs.find { it.id == userClubId }
+        val academyLevel = userClub?.youthAcademyLevel ?: 1
+        for (i in 1..3) {
+            val youthPlayer = com.brunogarcia.footballempireclubmanager.domain.engine.YouthGenerator.generateYouthPlayer(userClubId, academyLevel)
+            updatedPlayers.add(youthPlayer)
         }
 
         // 5. Reinicializar o jogo em memória com os dados limpos (mantendo clubes e jogadores atualizados)

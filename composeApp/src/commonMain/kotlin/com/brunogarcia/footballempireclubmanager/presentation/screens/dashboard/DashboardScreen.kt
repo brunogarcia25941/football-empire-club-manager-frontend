@@ -121,6 +121,15 @@ class DashboardScreen : Screen {
 
                 Spacer(modifier = Modifier.height(8.dp))
 
+                OutlinedButton(
+                    onClick = { navigator.push(com.brunogarcia.footballempireclubmanager.presentation.screens.youthacademy.YouthAcademyScreen()) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Academia de Juniores")
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
                 Button(
                     onClick = { navigator.push(TransferMarketScreen()) },
                     modifier = Modifier.fillMaxWidth(),

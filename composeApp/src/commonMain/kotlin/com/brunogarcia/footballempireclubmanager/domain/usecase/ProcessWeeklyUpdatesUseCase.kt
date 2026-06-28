@@ -37,6 +37,7 @@ class ProcessWeeklyUpdatesUseCase {
      */
     private fun updateStaminaAndFitness(allClubs: List<Club>, allPlayers: List<Player>, weeklyResults: List<MatchResult>) {
         allPlayers.forEach { player ->
+            if (player.clubId.startsWith("YOUTH_")) return@forEach
             val club = allClubs.find { it.id == player.clubId }
             
             // Bónus de recuperação baseado nas infraestruturas (1 a 10)
@@ -60,6 +61,7 @@ class ProcessWeeklyUpdatesUseCase {
      */
     private fun processPlayerEvolution(allClubs: List<Club>, allPlayers: List<Player>) {
         allPlayers.forEach { player ->
+            if (player.clubId.startsWith("YOUTH_")) return@forEach
             val club = allClubs.find { it.id == player.clubId }
             val facilities = club?.trainingFacilities ?: 1 // 1 a 10
             
