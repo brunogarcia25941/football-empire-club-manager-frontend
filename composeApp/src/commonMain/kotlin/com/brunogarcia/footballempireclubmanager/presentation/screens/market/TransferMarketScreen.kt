@@ -1,11 +1,13 @@
 package com.brunogarcia.footballempireclubmanager.presentation.screens.market
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -17,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -24,10 +27,13 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.getScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.brunogarcia.footballempireclubmanager.presentation.components.GlassCard
+import com.brunogarcia.footballempireclubmanager.presentation.theme.MidnightBlue
+import com.brunogarcia.footballempireclubmanager.presentation.theme.DarkNavy
+import com.brunogarcia.footballempireclubmanager.presentation.theme.NeonGreen
+import com.brunogarcia.footballempireclubmanager.presentation.theme.NeonCyan
+import com.brunogarcia.footballempireclubmanager.presentation.theme.AlertRed
 
-/**
- * Função utilitária para formatar valores monetários (ex: 1.000.000 €).
- */
 fun formatPrice(value: Double): String {
     val numberString = value.toLong().toString()
     if (numberString.length <= 3) return "$numberString €"
@@ -46,90 +52,135 @@ class TransferMarketScreen : Screen {
         val positions = listOf("GK", "CB", "LB", "RB", "CDM", "CM", "CAM", "RW", "LW", "ST")
 
         Scaffold(
+            containerColor = Color.Transparent,
             topBar = {
                 TopAppBar(
-                    title = { Text("Mercado de Transferências") },
+                    title = {
+                        Text(
+                            text = "MERCADO DE TRANSFERÊNCIAS",
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = 1.sp,
+                            fontSize = 18.sp
+                        )
+                    },
                     navigationIcon = {
                         IconButton(onClick = { navigator.pop() }) {
-                            Icon(Icons.Filled.ArrowBack, contentDescription = "Voltar")
+                            Icon(Icons.Filled.ArrowBack, contentDescription = "Voltar", tint = NeonCyan)
                         }
-                    }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = DarkNavy,
+                        titleContentColor = NeonCyan
+                    )
                 )
             }
         ) { paddingValues ->
-            Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-                
-                // 1. Barra de Pesquisa por Nome
-                OutlinedTextField(
-                    value = state.searchQuery,
-                    onValueChange = { screenModel.onSearchQueryChanged(it) },
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                    placeholder = { Text("Pesquisar jogador...") },
-                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                    shape = RoundedCornerShape(12.dp),
-                    singleLine = true
-                )
-
-                // 2. Filtros Rápidos por Posição (Horizontal)
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.padding(bottom = 8.dp)
-                ) {
-                    item {
-                        FilterChip(
-                            selected = state.selectedPosition == null,
-                            onClick = { screenModel.onPositionFilterChanged(null) },
-                            label = { Text("Todos") }
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Brush.verticalGradient(listOf(MidnightBlue, DarkNavy)))
+                    .padding(paddingValues)
+            ) {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    
+                    OutlinedTextField(
+                        value = state.searchQuery,
+                        onValueChange = { screenModel.onSearchQueryChanged(it) },
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                        placeholder = { Text("Pesquisar jogador...", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)) },
+                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = NeonCyan) },
+                        shape = RoundedCornerShape(12.dp),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = NeonCyan,
+                            unfocusedBorderColor = com.brunogarcia.footballempireclubmanager.presentation.theme.GlassBorder,
+                            focusedContainerColor = DarkNavy.copy(alpha = 0.6f),
+                            unfocusedContainerColor = DarkNavy.copy(alpha = 0.3f)
                         )
-                    }
-                    items(positions) { pos ->
-                        FilterChip(
-                            selected = state.selectedPosition == pos,
-                            onClick = { screenModel.onPositionFilterChanged(pos) },
-                            label = { Text(pos) }
-                        )
-                    }
-                }
+                    )
 
-                // 3. Resumo Financeiro
-                Surface(
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(bottom = 8.dp)
                     ) {
-                        Text("O teu Orçamento:", fontWeight = FontWeight.Bold)
-                        Text(formatPrice(state.myBudget), fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.primary)
-                    }
-                }
-
-                // 4. Lista Principal de Jogadores
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(state.filteredPlayers) { item ->
-                        PlayerMarketCard(item = item, canAfford = state.myBudget >= item.price) {
-                            screenModel.onPlayerClicked(item) // Abre os detalhes
+                        item {
+                            FilterChip(
+                                selected = state.selectedPosition == null,
+                                onClick = { screenModel.onPositionFilterChanged(null) },
+                                label = { Text("TODOS", fontWeight = FontWeight.Bold) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = NeonCyan,
+                                    selectedLabelColor = MidnightBlue,
+                                    containerColor = DarkNavy.copy(alpha = 0.5f),
+                                    labelColor = NeonCyan
+                                ),
+                                border = FilterChipDefaults.filterChipBorder(
+                                    enabled = true,
+                                    selected = state.selectedPosition == null,
+                                    borderColor = NeonCyan.copy(alpha = 0.5f),
+                                    selectedBorderColor = NeonCyan
+                                )
+                            )
+                        }
+                        items(positions) { pos ->
+                            FilterChip(
+                                selected = state.selectedPosition == pos,
+                                onClick = { screenModel.onPositionFilterChanged(pos) },
+                                label = { Text(pos, fontWeight = FontWeight.Bold) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = NeonCyan,
+                                    selectedLabelColor = MidnightBlue,
+                                    containerColor = DarkNavy.copy(alpha = 0.5f),
+                                    labelColor = NeonCyan
+                                ),
+                                border = FilterChipDefaults.filterChipBorder(
+                                    enabled = true,
+                                    selected = state.selectedPosition == pos,
+                                    borderColor = NeonCyan.copy(alpha = 0.5f),
+                                    selectedBorderColor = NeonCyan
+                                )
+                            )
                         }
                     }
-                    
-                    if (state.filteredPlayers.isEmpty()) {
-                        item {
-                            Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
-                                Text("Nenhum jogador encontrado.", color = Color.Gray)
+
+                    GlassCard(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("ORÇAMENTO DISPONÍVEL:", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                            Text(formatPrice(state.myBudget), fontWeight = FontWeight.Black, color = NeonGreen, fontSize = 18.sp)
+                        }
+                    }
+
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        items(state.filteredPlayers) { item ->
+                            PlayerMarketCard(item = item, canAfford = state.myBudget >= item.price) {
+                                screenModel.onPlayerClicked(item)
+                            }
+                        }
+                        
+                        if (state.filteredPlayers.isEmpty()) {
+                            item {
+                                Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
+                                    Text("Nenhum jogador listado de momento.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
                             }
                         }
                     }
                 }
             }
 
-            // POPUP DE DETALHES E CONFIRMAÇÃO
             state.selectedPlayerForDetails?.let { item ->
                 PlayerDetailsDialog(
                     item = item,
@@ -141,53 +192,54 @@ class TransferMarketScreen : Screen {
         }
     }
 
-    /**
-     * Cartão individual de cada jogador na lista.
-     */
     @Composable
     private fun PlayerMarketCard(item: MarketItem, canAfford: Boolean, onClick: () -> Unit) {
         Card(
-            modifier = Modifier.fillMaxWidth().clickable { onClick() }, // Clicar no cartão abre os detalhes
-            elevation = CardDefaults.cardElevation(2.dp)
+            modifier = Modifier.fillMaxWidth().clickable { onClick() },
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = com.brunogarcia.footballempireclubmanager.presentation.theme.GlassSurface
+            ),
+            border = BorderStroke(
+                1.dp,
+                com.brunogarcia.footballempireclubmanager.presentation.theme.GlassBorder.copy(alpha = 0.15f)
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Row(
-                modifier = Modifier.padding(12.dp).fillMaxWidth(),
+                modifier = Modifier.padding(14.dp).fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Indicador de Posição e Overall
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(50.dp)) {
-                    Text(item.player.mainPosition.name, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    Text(item.player.mainPosition.name, fontWeight = FontWeight.Black, fontSize = 11.sp, color = NeonCyan)
+                    Spacer(modifier = Modifier.height(4.dp))
                     Box(
-                        modifier = Modifier.size(40.dp).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.primary),
+                        modifier = Modifier.size(36.dp).clip(CircleShape).background(NeonCyan.copy(alpha = 0.15f)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(item.overall.toString(), fontWeight = FontWeight.Bold, color = Color.White)
+                        Text(item.overall.toString(), fontWeight = FontWeight.Black, color = NeonCyan, fontSize = 14.sp)
                     }
                 }
 
                 Spacer(modifier = Modifier.width(16.dp))
 
-                // Informação Principal
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(item.player.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                    Text("Clube: ${item.sellerClubName}", fontSize = 12.sp, color = Color.Gray)
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(formatPrice(item.price), fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.secondary)
+                    Text(item.player.name, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color.White)
+                    Text("Clube vendedor: ${item.sellerClubName} | Idade: ${item.player.age}a", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(formatPrice(item.price), fontWeight = FontWeight.Black, color = NeonGreen, fontSize = 15.sp)
                 }
 
-                // Ícone indicativo
                 Icon(
                     Icons.Filled.ShoppingCart,
-                    contentDescription = null,
-                    tint = if (canAfford) MaterialTheme.colorScheme.primary else Color.Gray.copy(alpha = 0.5f)
+                    contentDescription = "Comprar",
+                    tint = if (canAfford) NeonCyan else AlertRed.copy(alpha = 0.4f),
+                    modifier = Modifier.size(24.dp)
                 )
             }
         }
     }
 
-    /**
-     * Dialog detalhado que mostra todos os atributos do jogador antes da compra.
-     */
     @Composable
     private fun PlayerDetailsDialog(
         item: MarketItem,
@@ -199,18 +251,21 @@ class TransferMarketScreen : Screen {
 
         AlertDialog(
             onDismissRequest = onDismiss,
+            containerColor = DarkNavy,
             title = {
                 Column {
-                    Text(player.name, fontWeight = FontWeight.Bold)
-                    Text("${player.age} anos | ${player.mainPosition.name}", style = MaterialTheme.typography.bodySmall)
+                    Text(player.name, fontWeight = FontWeight.Bold, color = Color.White)
+                    Text("${player.age} anos | ${player.mainPosition.name}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Divider()
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    HorizontalDivider(color = com.brunogarcia.footballempireclubmanager.presentation.theme.GlassBorder.copy(alpha = 0.2f))
                     
-                    // Secção de Atributos Físicos e Mentais
-                    Text("Atributos de Campo", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                    Text("Capacidades Técnicas".uppercase(), fontWeight = FontWeight.Black, color = NeonCyan, fontSize = 12.sp, letterSpacing = 1.sp)
                     
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         AttributeItem("Velocidade", player.pace)
@@ -229,29 +284,28 @@ class TransferMarketScreen : Screen {
                         AttributeItem("Finalização", player.finishing)
                     }
 
-                    // Atributos de Guarda-Redes (Só mostra se for relevante)
                     if (player.mainPosition == com.brunogarcia.footballempireclubmanager.domain.model.Position.GK) {
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text("Guarda-Redes", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.secondary)
+                        Text("Guarda-Redes", fontWeight = FontWeight.Black, color = NeonCyan, fontSize = 12.sp)
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             AttributeItem("Reflexos", player.gkReflexes)
                             AttributeItem("Mãos", player.gkHandling)
                         }
                     }
 
-                    Divider(modifier = Modifier.padding(vertical = 8.dp))
+                    HorizontalDivider(color = com.brunogarcia.footballempireclubmanager.presentation.theme.GlassBorder.copy(alpha = 0.2f))
                     
-                    // Informação Financeira
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("Preço de Venda:", fontWeight = FontWeight.Bold)
-                        Text(formatPrice(item.price), color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Bold)
+                        Text("Preço Solicitado:", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(formatPrice(item.price), color = NeonGreen, fontWeight = FontWeight.Black)
                     }
 
                     if (!canAfford) {
                         Text(
-                            "Não tens orçamento suficiente para esta transferência.",
-                            color = MaterialTheme.colorScheme.error,
+                            text = "Não tens orçamento disponível para fechar este negócio.",
+                            color = AlertRed,
                             style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(top = 4.dp)
                         )
                     }
@@ -261,36 +315,43 @@ class TransferMarketScreen : Screen {
                 Button(
                     onClick = onConfirm,
                     enabled = canAfford,
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = NeonGreen,
+                        contentColor = MidnightBlue,
+                        disabledContainerColor = NeonGreen.copy(alpha = 0.12f),
+                        disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    ),
+                    shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text("Confirmar Compra")
+                    Text("CONFIRMAR COMPRA", fontWeight = FontWeight.Black)
                 }
             },
             dismissButton = {
-                TextButton(onClick = onDismiss) {
-                    Text("Cancelar")
+                TextButton(
+                    onClick = onDismiss,
+                    colors = ButtonDefaults.textButtonColors(contentColor = NeonCyan)
+                ) {
+                    Text("CANCELAR", fontWeight = FontWeight.Bold)
                 }
             }
         )
     }
 
-    /**
-     * Componente pequeno para mostrar um atributo (Nome: Valor)
-     */
     @Composable
     private fun AttributeItem(label: String, value: Int) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("$label: ", style = MaterialTheme.typography.bodySmall)
+            Text("$label: ", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            val attrColor = when {
+                value >= 85 -> NeonCyan
+                value >= 70 -> NeonGreen
+                value >= 50 -> Color(0xFFFBC02D)
+                else -> AlertRed
+            }
             Text(
                 text = value.toString(),
                 style = MaterialTheme.typography.bodySmall,
-                fontWeight = FontWeight.Bold,
-                color = when {
-                    value >= 85 -> Color(0xFF1B5E20) // Verde forte
-                    value >= 70 -> Color(0xFF4CAF50) // Verde
-                    value >= 50 -> Color(0xFFFBC02D) // Amarelo
-                    else -> Color(0xFFD32F2F)        // Vermelho
-                }
+                fontWeight = FontWeight.Black,
+                color = attrColor
             )
         }
     }

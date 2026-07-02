@@ -1,5 +1,6 @@
 package com.brunogarcia.footballempireclubmanager.presentation.screens.mainmenu
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -14,9 +15,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.getScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -24,12 +27,9 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.brunogarcia.footballempireclubmanager.domain.model.Club
 import com.brunogarcia.footballempireclubmanager.domain.model.InitialDataWrapper
 import com.brunogarcia.footballempireclubmanager.presentation.screens.MainGameScreen
+import com.brunogarcia.footballempireclubmanager.presentation.theme.*
 import org.koin.core.parameter.parametersOf
 
-/**
- * Ecrã de Seleção de Equipas. Apresenta uma lista dos clubes disponíveis
- * e abre um popup detalhado antes de confirmar a escolha.
- */
 class SelectTeamScreen(private val initialData: InitialDataWrapper) : Screen {
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -37,119 +37,142 @@ class SelectTeamScreen(private val initialData: InitialDataWrapper) : Screen {
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         
-        // Inicializa o ScreenModel passando os dados iniciais do JSON por parâmetro
         val screenModel = getScreenModel<SelectTeamScreenModel> { parametersOf(initialData) }
         val isLoading by screenModel.isLoading.collectAsState()
         
         var selectedClub by remember { mutableStateOf<Club?>(null) }
 
         Scaffold(
+            containerColor = Color.Transparent,
             topBar = {
                 TopAppBar(
-                    title = { Text("Escolher Clube", fontWeight = FontWeight.Bold) },
+                    title = { 
+                        Text(
+                            text = "ESCOLHER CLUBE", 
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = 1.sp,
+                            fontSize = 18.sp
+                        ) 
+                    },
                     navigationIcon = {
                         IconButton(onClick = { navigator.pop() }) {
-                            Icon(Icons.Default.ArrowBack, contentDescription = "Voltar")
+                            Icon(Icons.Default.ArrowBack, contentDescription = "Voltar", tint = NeonCyan)
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        containerColor = DarkNavy,
+                        titleContentColor = NeonCyan
                     )
                 )
             }
         ) { paddingValues ->
-            if (isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(initialData.clubs) { club ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { selectedClub = club },
-                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Row(
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Brush.verticalGradient(listOf(MidnightBlue, DarkNavy)))
+                    .padding(paddingValues)
+            ) {
+                if (isLoading) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = NeonCyan)
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        items(initialData.clubs) { club ->
+                            Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(16.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                                    .clickable { selectedClub = club },
+                                shape = RoundedCornerShape(12.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = GlassSurface
+                                ),
+                                border = BorderStroke(
+                                    1.dp,
+                                    GlassBorder.copy(alpha = 0.15f)
+                                ),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                             ) {
-                                // Pequeno indicador circular com a cor primária do clube
-                                Box(
+                                Row(
                                     modifier = Modifier
-                                        .size(24.dp)
-                                        .clip(CircleShape)
-                                        .background(club.primaryColor.toComposeColor())
-                                )
-                                
-                                Spacer(modifier = Modifier.width(16.dp))
-                                
-                                Column(
-                                    modifier = Modifier.weight(1f)
+                                        .fillMaxWidth()
+                                        .padding(14.dp),
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text(
-                                        text = club.name,
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold
+                                    Box(
+                                        modifier = Modifier
+                                            .size(20.dp)
+                                            .clip(CircleShape)
+                                            .background(club.primaryColor.toComposeColor())
                                     )
+                                    
+                                    Spacer(modifier = Modifier.width(16.dp))
+                                    
+                                    Column(
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text(
+                                            text = club.name,
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White
+                                        )
+                                        Text(
+                                            text = "Reputação: ${club.reputation}/100",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+
                                     Text(
-                                        text = "Reputação: ${club.reputation}/100",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        text = formatBudget(club.budget),
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Black,
+                                        color = NeonGreen
                                     )
                                 }
-
-                                Text(
-                                    text = formatBudget(club.budget),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
                             }
                         }
                     }
                 }
             }
 
-            // Pop-up dialog com os detalhes da equipa selecionada
             selectedClub?.let { club ->
                 AlertDialog(
                     onDismissRequest = { selectedClub = null },
+                    containerColor = DarkNavy,
                     confirmButton = {
                         Button(
                             onClick = {
                                 selectedClub = null
                                 screenModel.selectTeam(club.id) {
-                                    // Limpa o fluxo e entra diretamente no Dashboard principal do jogo
                                     navigator.replaceAll(MainGameScreen())
                                 }
                             },
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = NeonCyan,
+                                contentColor = MidnightBlue
+                            ),
+                            shape = RoundedCornerShape(8.dp)
                         ) {
-                            Text("Iniciar Carreira", fontWeight = FontWeight.Bold)
+                            Text("INICIAR CARREIRA", fontWeight = FontWeight.Black)
                         }
                     },
                     dismissButton = {
                         TextButton(
                             onClick = { selectedClub = null },
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.textButtonColors(contentColor = AlertRed)
                         ) {
-                            Text("Cancelar", color = MaterialTheme.colorScheme.error)
+                            Text("CANCELAR", fontWeight = FontWeight.Bold)
                         }
                     },
                     title = {
@@ -167,11 +190,11 @@ class SelectTeamScreen(private val initialData: InitialDataWrapper) : Screen {
                                 Text(
                                     text = club.name.take(2).uppercase(),
                                     color = Color.White,
-                                    fontWeight = FontWeight.Bold,
+                                    fontWeight = FontWeight.Black,
                                     style = MaterialTheme.typography.bodyMedium
                                 )
                             }
-                            Text(text = club.name, fontWeight = FontWeight.Bold)
+                            Text(text = club.name, fontWeight = FontWeight.Bold, color = Color.White)
                         }
                     },
                     text = {
@@ -181,12 +204,13 @@ class SelectTeamScreen(private val initialData: InitialDataWrapper) : Screen {
                                 .padding(vertical = 8.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            DetailRow("Orçamento:", formatBudget(club.budget))
+                            HorizontalDivider(color = GlassBorder.copy(alpha = 0.2f))
+                            DetailRow("Orçamento do Clube:", formatBudget(club.budget))
                             DetailRow("Estádio:", "${club.stadiumCapacity} lugares")
-                            DetailRow("Preço Bilhete:", "${club.ticketPrice.toInt()} €")
-                            DetailRow("Reputação:", "${club.reputation}/100")
-                            DetailRow("Academia Juniores:", "Nível ${club.youthAcademyLevel}/10")
-                            DetailRow("Centro Treinos:", "Nível ${club.trainingFacilities}/10")
+                            DetailRow("Preço de Bilheteira:", "${club.ticketPrice.toInt()} €")
+                            DetailRow("Reputação de Estrelas:", "${club.reputation}/100")
+                            DetailRow("Academia de Juniores:", "Nível ${club.youthAcademyLevel}/10")
+                            DetailRow("Centro de Treinos:", "Nível ${club.trainingFacilities}/10")
                         }
                     }
                 )
@@ -201,7 +225,7 @@ class SelectTeamScreen(private val initialData: InitialDataWrapper) : Screen {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(text = label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(text = value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+            Text(text = value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = Color.White)
         }
     }
 
@@ -213,7 +237,6 @@ class SelectTeamScreen(private val initialData: InitialDataWrapper) : Screen {
         }
     }
 
-    // Função auxiliar para converter o formato Hexadecimal de cor da BD para compose Color
     private fun String.toComposeColor(): Color {
         return try {
             val hex = this.removePrefix("#")

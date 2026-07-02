@@ -1,5 +1,6 @@
 package com.brunogarcia.footballempireclubmanager.presentation.screens.facilities
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -13,6 +14,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -21,7 +23,11 @@ import cafe.adriel.voyager.koin.getScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.brunogarcia.footballempireclubmanager.domain.usecase.FacilityType
-
+import com.brunogarcia.footballempireclubmanager.presentation.components.GlassCard
+import com.brunogarcia.footballempireclubmanager.presentation.theme.MidnightBlue
+import com.brunogarcia.footballempireclubmanager.presentation.theme.DarkNavy
+import com.brunogarcia.footballempireclubmanager.presentation.theme.NeonGreen
+import com.brunogarcia.footballempireclubmanager.presentation.theme.NeonCyan
 
 fun formatMoney(value: Double): String {
     val numberString = value.toLong().toString()
@@ -38,98 +44,153 @@ class FacilitiesScreen : Screen {
         val state by screenModel.state.collectAsState()
 
         Scaffold(
+            containerColor = Color.Transparent,
             topBar = {
                 TopAppBar(
-                    title = { Text("Infraestruturas") },
+                    title = {
+                        Text(
+                            text = "INFRAESTRUTURAS",
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = 1.sp,
+                            fontSize = 18.sp
+                        )
+                    },
                     navigationIcon = {
                         IconButton(onClick = { navigator.pop() }) {
-                            Icon(Icons.Filled.ArrowBack, contentDescription = "Voltar")
+                            Icon(Icons.Filled.ArrowBack, contentDescription = "Voltar", tint = NeonCyan)
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = DarkNavy,
+                        titleContentColor = NeonCyan
+                    )
                 )
             }
         ) { paddingValues ->
-            Column(modifier = Modifier.fillMaxSize().padding(paddingValues).padding(16.dp)) {
-
-                // Saldo Atual
-                Text("Orçamento Disponível", style = MaterialTheme.typography.labelLarge)
-                Text(formatMoney(state.budget), fontWeight = FontWeight.Bold, fontSize = 24.sp, color = MaterialTheme.colorScheme.primary)
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Cartão: Estádio
-                Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(2.dp)) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Filled.Home, contentDescription = "Estádio", modifier = Modifier.size(32.dp))
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Column {
-                                Text("Estádio Principal", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                                Text("Lotação: ${state.stadiumCapacity} lugares", color = Color.Gray)
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Button(
-                            onClick = { screenModel.upgradeFacility(FacilityType.STADIUM) },
-                            modifier = Modifier.fillMaxWidth(),
-                            enabled = state.budget >= state.stadiumUpgradeCost
-                        ) {
-                            Text("Expandir (+5.000 lugares) - ${formatMoney(state.stadiumUpgradeCost)}")
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Cartão: Centro de Treinos
-                Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(2.dp)) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Filled.Build, contentDescription = "Treino", modifier = Modifier.size(32.dp))
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Column {
-                                Text("Centro de Treinos", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                                Text("Nível: ${state.trainingLevel}/10 (Acelera recuperação física)", color = Color.Gray)
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Button(
-                            onClick = { screenModel.upgradeFacility(FacilityType.TRAINING_CENTER) },
-                            modifier = Modifier.fillMaxWidth(),
-                            enabled = !state.isTrainingMaxed && state.budget >= state.trainingUpgradeCost
-                        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Brush.verticalGradient(listOf(MidnightBlue, DarkNavy)))
+                    .padding(paddingValues)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Saldo Atual
+                    GlassCard(modifier = Modifier.fillMaxWidth()) {
+                        Column {
+                            Text("ORÇAMENTO DISPONÍVEL", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                if (state.isTrainingMaxed) "Nível Máximo Atingido"
-                                else "Melhorar Centro (+1 Nível) - ${formatMoney(state.trainingUpgradeCost)}"
+                                text = formatMoney(state.budget), 
+                                fontWeight = FontWeight.Black, 
+                                fontSize = 24.sp, 
+                                color = NeonGreen
                             )
                         }
                     }
-                }
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Cartão: Academia de Juniores
-                Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(2.dp)) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Filled.Star, contentDescription = "Academia", modifier = Modifier.size(32.dp))
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Column {
-                                Text("Academia de Juniores", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                                Text("Nível: ${state.youthAcademyLevel}/10 (Gera melhores juniores)", color = Color.Gray)
+                    // Cartão: Estádio
+                    GlassCard(modifier = Modifier.fillMaxWidth()) {
+                        Column {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Filled.Home, contentDescription = "Estádio", modifier = Modifier.size(32.dp), tint = NeonCyan)
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column {
+                                    Text("Estádio Principal", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color.White)
+                                    Text("Lotação: ${state.stadiumCapacity} lugares", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(16.dp))
+                            val isStadiumAffordable = state.budget >= state.stadiumUpgradeCost
+                            Button(
+                                onClick = { screenModel.upgradeFacility(FacilityType.STADIUM) },
+                                modifier = Modifier.fillMaxWidth(),
+                                enabled = isStadiumAffordable,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = NeonCyan,
+                                    contentColor = MidnightBlue,
+                                    disabledContainerColor = NeonCyan.copy(alpha = 0.12f),
+                                    disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                ),
+                                shape = MaterialTheme.shapes.medium
+                            ) {
+                                Text(
+                                    text = "EXPANDIR (+5.000 LUGARES) - ${formatMoney(state.stadiumUpgradeCost)}",
+                                    fontWeight = FontWeight.Black
+                                )
                             }
                         }
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Button(
-                            onClick = { screenModel.upgradeFacility(FacilityType.YOUTH_ACADEMY) },
-                            modifier = Modifier.fillMaxWidth(),
-                            enabled = !state.isYouthAcademyMaxed && state.budget >= state.youthAcademyUpgradeCost
-                        ) {
-                            Text(
-                                if (state.isYouthAcademyMaxed) "Nível Máximo Atingido"
-                                else "Melhorar Academia (+1 Nível) - ${formatMoney(state.youthAcademyUpgradeCost)}"
-                            )
+                    }
+
+                    // Cartão: Centro de Treinos
+                    GlassCard(modifier = Modifier.fillMaxWidth()) {
+                        Column {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Filled.Build, contentDescription = "Treino", modifier = Modifier.size(32.dp), tint = NeonCyan)
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column {
+                                    Text("Centro de Treinos", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color.White)
+                                    Text("Nível: ${state.trainingLevel}/10 (Recuperação física)", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(16.dp))
+                            val isTrainingAffordable = !state.isTrainingMaxed && state.budget >= state.trainingUpgradeCost
+                            Button(
+                                onClick = { screenModel.upgradeFacility(FacilityType.TRAINING_CENTER) },
+                                modifier = Modifier.fillMaxWidth(),
+                                enabled = isTrainingAffordable,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = NeonCyan,
+                                    contentColor = MidnightBlue,
+                                    disabledContainerColor = NeonCyan.copy(alpha = 0.12f),
+                                    disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                ),
+                                shape = MaterialTheme.shapes.medium
+                            ) {
+                                Text(
+                                    text = if (state.isTrainingMaxed) "NÍVEL MÁXIMO ATINGIDO"
+                                    else "MELHORAR CENTRO (+1 NÍVEL) - ${formatMoney(state.trainingUpgradeCost)}",
+                                    fontWeight = FontWeight.Black
+                                )
+                            }
+                        }
+                    }
+
+                    // Cartão: Academia de Juniores
+                    GlassCard(modifier = Modifier.fillMaxWidth()) {
+                        Column {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Filled.Star, contentDescription = "Academia", modifier = Modifier.size(32.dp), tint = NeonCyan)
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column {
+                                    Text("Academia de Juniores", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color.White)
+                                    Text("Nível: ${state.youthAcademyLevel}/10 (Gera melhores juniores)", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(16.dp))
+                            val isYouthAcademyAffordable = !state.isYouthAcademyMaxed && state.budget >= state.youthAcademyUpgradeCost
+                            Button(
+                                onClick = { screenModel.upgradeFacility(FacilityType.YOUTH_ACADEMY) },
+                                modifier = Modifier.fillMaxWidth(),
+                                enabled = isYouthAcademyAffordable,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = NeonCyan,
+                                    contentColor = MidnightBlue,
+                                    disabledContainerColor = NeonCyan.copy(alpha = 0.12f),
+                                    disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                ),
+                                shape = MaterialTheme.shapes.medium
+                            ) {
+                                Text(
+                                    text = if (state.isYouthAcademyMaxed) "NÍVEL MÁXIMO ATINGIDO"
+                                    else "MELHORAR ACADEMIA (+1 NÍVEL) - ${formatMoney(state.youthAcademyUpgradeCost)}",
+                                    fontWeight = FontWeight.Black
+                                )
+                            }
                         }
                     }
                 }

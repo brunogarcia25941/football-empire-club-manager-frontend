@@ -28,7 +28,8 @@ class MainGameScreen : Screen {
         Scaffold(
             bottomBar = {
                 NavigationBar(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    containerColor = com.brunogarcia.footballempireclubmanager.presentation.theme.DarkNavy,
+                    contentColor = com.brunogarcia.footballempireclubmanager.presentation.theme.NeonCyan
                 ) {
                     // Botão 1: O Clube (Dashboard)
                     NavigationBarItem(

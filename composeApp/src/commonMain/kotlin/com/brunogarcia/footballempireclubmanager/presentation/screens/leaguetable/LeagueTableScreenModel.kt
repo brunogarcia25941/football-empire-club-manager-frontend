@@ -32,6 +32,8 @@ class LeagueTableScreenModel(
         refreshTable(division)
     }
 
+    fun getUserClubId(): String = repository.getUserClubId()
+
     private fun refreshTable(division: Int) {
         val clubs = repository.getAllClubs()
         val results = repository.getMatchHistory()

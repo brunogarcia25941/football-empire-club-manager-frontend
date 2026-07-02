@@ -1,10 +1,12 @@
 package com.brunogarcia.footballempireclubmanager.presentation.screens.tactics
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -17,6 +19,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -24,6 +27,11 @@ import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.getScreenModel
 import com.brunogarcia.footballempireclubmanager.domain.model.Player
+import com.brunogarcia.footballempireclubmanager.presentation.theme.AlertRed
+import com.brunogarcia.footballempireclubmanager.presentation.theme.DarkNavy
+import com.brunogarcia.footballempireclubmanager.presentation.theme.MidnightBlue
+import com.brunogarcia.footballempireclubmanager.presentation.theme.NeonCyan
+import com.brunogarcia.footballempireclubmanager.presentation.theme.NeonGreen
 
 class TacticsScreen : Screen {
 
@@ -39,16 +47,22 @@ class TacticsScreen : Screen {
         }
 
         Scaffold(
+            containerColor = Color.Transparent,
             topBar = {
                 TopAppBar(
                     title = {
-                        Text(if (state.selectedSlotId == null) "Táticas (4-3-3)" else "Escolher Jogador")
+                        Text(
+                            text = if (state.selectedSlotId == null) "TÁTICAS (4-3-3)" else "ESCOLHER JOGADOR",
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = 1.sp,
+                            fontSize = 18.sp
+                        )
                     },
                     navigationIcon = {
                         // Se estiver na lista de seleção, mostra um botão para cancelar
                         if (state.selectedSlotId != null) {
                             IconButton(onClick = { screenModel.closePlayerSelection() }) {
-                                Icon(Icons.Filled.Clear, contentDescription = "Cancelar")
+                                Icon(Icons.Filled.Clear, contentDescription = "Cancelar", tint = AlertRed)
                             }
                         }
                     },
@@ -57,25 +71,31 @@ class TacticsScreen : Screen {
                         if (state.selectedSlotId == null) {
                             TextButton(onClick = { screenModel.autoPickStarting11() }) {
                                 Text(
-                                    text = "Auto-Escalar",
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                    text = "AUTO-ESCALAR",
+                                    fontWeight = FontWeight.Black,
+                                    color = NeonCyan
                                 )
                             }
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                        containerColor = DarkNavy,
+                        titleContentColor = NeonCyan
                     )
                 )
             }
         ) { paddingValues ->
-            Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Brush.verticalGradient(listOf(MidnightBlue, DarkNavy)))
+                    .padding(paddingValues)
+            ) {
                 if (state.selectedSlotId == null) {
                     // MODO 1: Ver a Tática
                     LazyColumn(
                         contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         items(state.slots) { slot ->
                             TacticSlotItem(slot = slot, onClick = { screenModel.openPlayerSelection(slot.id) })
@@ -99,45 +119,98 @@ class TacticsScreen : Screen {
     @Composable
     private fun TacticSlotItem(slot: TacticSlot, onClick: () -> Unit) {
         val hasPlayer = slot.player != null
-        val bgColor = if (hasPlayer) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.errorContainer
 
         Card(
-            modifier = Modifier.fillMaxWidth().clickable { onClick() },
-            colors = CardDefaults.cardColors(containerColor = bgColor)
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onClick() },
+            shape = RoundedCornerShape(14.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = com.brunogarcia.footballempireclubmanager.presentation.theme.GlassSurface
+            ),
+            border = BorderStroke(
+                1.dp,
+                if (hasPlayer) com.brunogarcia.footballempireclubmanager.presentation.theme.GlassBorder else AlertRed.copy(alpha = 0.6f)
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
             Row(
-                modifier = Modifier.padding(12.dp).fillMaxWidth(),
+                modifier = Modifier.padding(14.dp).fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Posição no campo
+                // Posição no campo (ex: GK, CB, ST)
                 Box(
-                    modifier = Modifier.size(40.dp).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.tertiaryContainer),
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(if (hasPlayer) NeonCyan else AlertRed.copy(alpha = 0.2f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(slot.role.name, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onTertiaryContainer)
+                    Text(
+                        text = slot.role.name,
+                        fontWeight = FontWeight.Black,
+                        color = if (hasPlayer) MidnightBlue else AlertRed,
+                        fontSize = 14.sp
+                    )
                 }
 
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(16.dp))
 
                 if (slot.player != null) {
-                    // Jogador colocado
+                    val player = slot.player
+                    // Jogador escalado
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(slot.player.name, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
-                        Text("Condição: ${slot.player.stamina}%", fontSize = 12.sp, color = Color.Gray)
+                        Text(
+                            text = player.name,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp,
+                            color = Color.White
+                        )
+                        // Barra de Stamina/Condição com cor dinâmica
+                        val staminaColor = when {
+                            player.stamina >= 80 -> NeonGreen
+                            player.stamina >= 50 -> Color(0xFFFF9800)
+                            else -> AlertRed
+                        }
+                        Text(
+                            text = "Condição: ${player.stamina}%",
+                            fontSize = 12.sp,
+                            color = staminaColor,
+                            fontWeight = FontWeight.SemiBold
+                        )
                     }
 
-                    // Mostra o Overall EFETIVO (Se puser o GR a avançado, ele vai avisar aqui)
-                    val effectiveOverall = slot.player.getEffectiveOverall(slot.role)
+                    // Mostra o Overall EFETIVO
+                    val effectiveOverall = player.getEffectiveOverall(slot.role)
                     Box(
-                        modifier = Modifier.size(40.dp).clip(RoundedCornerShape(20.dp)).background(MaterialTheme.colorScheme.primary),
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(NeonCyan.copy(alpha = 0.15f)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(effectiveOverall.toString(), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
+                        Text(
+                            text = effectiveOverall.toString(),
+                            fontWeight = FontWeight.Black,
+                            color = NeonCyan,
+                            fontSize = 15.sp
+                        )
                     }
                 } else {
                     // Slot Vazio
-                    Text("Posição Vazia", modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.onErrorContainer)
-                    Icon(Icons.Filled.Add, contentDescription = "Adicionar", tint = MaterialTheme.colorScheme.onErrorContainer)
+                    Text(
+                        text = "POSIÇÃO VAZIA",
+                        modifier = Modifier.weight(1f),
+                        color = AlertRed.copy(alpha = 0.8f),
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp,
+                        fontSize = 13.sp
+                    )
+                    Icon(
+                        imageVector = Icons.Filled.Add, 
+                        contentDescription = "Adicionar", 
+                        tint = AlertRed.copy(alpha = 0.8f)
+                    )
                 }
             }
         }
@@ -145,12 +218,71 @@ class TacticsScreen : Screen {
 
     @Composable
     private fun PlayerSelectionItem(player: Player, onClick: () -> Unit) {
-        Card(modifier = Modifier.fillMaxWidth().clickable { onClick() }) {
-            Row(modifier = Modifier.padding(12.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text(player.mainPosition.name, fontWeight = FontWeight.Bold, modifier = Modifier.width(40.dp))
+        val overall = player.getBaseOverall(player.mainPosition)
+
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onClick() },
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = com.brunogarcia.footballempireclubmanager.presentation.theme.GlassSurface
+            ),
+            border = BorderStroke(
+                1.dp,
+                com.brunogarcia.footballempireclubmanager.presentation.theme.GlassBorder.copy(alpha = 0.15f)
+            )
+        ) {
+            Row(
+                modifier = Modifier.padding(12.dp).fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Posição de Origem
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = player.mainPosition.name,
+                        fontWeight = FontWeight.Black,
+                        color = NeonCyan,
+                        fontSize = 12.sp
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(player.name, fontWeight = FontWeight.SemiBold)
-                    Text("Origem: ${player.mainPosition.name} | Stamina: ${player.stamina}%", fontSize = 12.sp)
+                    Text(
+                        text = player.name,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        fontSize = 15.sp
+                    )
+                    Text(
+                        text = "Idade: ${player.age} anos | Stamina: ${player.stamina}%",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                // OVR Base
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(NeonCyan.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = overall.toString(),
+                        fontWeight = FontWeight.Black,
+                        color = NeonCyan,
+                        fontSize = 14.sp
+                    )
                 }
             }
         }

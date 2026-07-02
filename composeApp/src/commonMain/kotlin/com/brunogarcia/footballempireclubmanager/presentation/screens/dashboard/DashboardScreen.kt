@@ -1,5 +1,6 @@
 package com.brunogarcia.footballempireclubmanager.presentation.screens.dashboard
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
@@ -8,6 +9,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -21,6 +23,11 @@ import com.brunogarcia.footballempireclubmanager.presentation.screens.market.Tra
 import com.brunogarcia.footballempireclubmanager.presentation.screens.matchreport.MatchReportScreen
 import com.brunogarcia.footballempireclubmanager.presentation.screens.squad.SquadScreen
 import com.brunogarcia.footballempireclubmanager.presentation.screens.newseason.NewSeasonScreen
+import com.brunogarcia.footballempireclubmanager.presentation.components.GlassCard
+import com.brunogarcia.footballempireclubmanager.presentation.theme.MidnightBlue
+import com.brunogarcia.footballempireclubmanager.presentation.theme.DarkNavy
+import com.brunogarcia.footballempireclubmanager.presentation.theme.NeonGreen
+import com.brunogarcia.footballempireclubmanager.presentation.theme.NeonCyan
 
 class DashboardScreen : Screen {
 
@@ -28,21 +35,20 @@ class DashboardScreen : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
-        // Usamos o Koin para injetar o ScreenModel magicamente!
         val screenModel = getScreenModel<DashboardScreenModel>()
 
-        // Observa o estado (se o budget mudar, a UI atualiza sozinha)
         val state by screenModel.state.collectAsState()
 
         LaunchedEffect(Unit) { screenModel.loadDashboardData() }
 
         Scaffold(
+            containerColor = Color.Transparent,
             topBar = {
                 TopAppBar(
-                    title = { Text(state.clubName, fontWeight = FontWeight.Bold) },
+                    title = { Text(state.clubName.uppercase(), fontWeight = FontWeight.Black, letterSpacing = 1.5.sp) },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        containerColor = DarkNavy,
+                        titleContentColor = NeonCyan
                     )
                 )
             },
@@ -53,143 +59,139 @@ class DashboardScreen : Screen {
                     onClick = {
                         if (!isEndOfSeason) {
                             screenModel.onAdvanceWeekClicked {
-                                // Quando terminar a simulação, abre o Relatório da Jornada
                                 navigator.push(MatchReportScreen())
                             }
                         } else {
-                            // Navega para o ecrã de fim de época para ver classificação e obter prémios
                             navigator.push(NewSeasonScreen())
                         }
                     },
                     icon = { Icon(Icons.Filled.PlayArrow, contentDescription = "Avançar") },
-                    text = { Text(if (isEndOfSeason) "Ver Fim de Época" else "Avançar Semana") },
-                    // Cor secundária ativa no final para destacar o botão "Ver Fim de Época"
-                    containerColor = if (isEndOfSeason) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary,
-                    contentColor = Color.White
+                    text = { Text(if (isEndOfSeason) "VER FIM DE ÉPOCA" else "AVANÇAR JORNADA", fontWeight = FontWeight.Bold) },
+                    containerColor = if (isEndOfSeason) NeonGreen else NeonCyan,
+                    contentColor = MidnightBlue
                 )
             }
         ) { paddingValues ->
-            Column(
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
+                    .background(Brush.verticalGradient(listOf(MidnightBlue, DarkNavy)))
                     .padding(paddingValues)
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Cartão da Época / Semana
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                    GlassCard(
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Icon(Icons.Filled.DateRange, contentDescription = null, modifier = Modifier.size(32.dp))
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column {
-                            Text("Calendário", style = MaterialTheme.typography.labelMedium)
-                            Text("Semana ${state.currentWeek}", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Filled.DateRange, 
+                                contentDescription = null, 
+                                modifier = Modifier.size(32.dp),
+                                tint = NeonCyan
+                            )
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Column {
+                                Text("CALENDÁRIO DA LIGA", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text("Semana ${state.currentWeek}", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = NeonCyan)
+                            }
                         }
                     }
-                }
 
-                // Cartão Financeiro
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Orçamento do Clube", style = MaterialTheme.typography.labelMedium)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        // Formatar o dinheiro (ex: 45000000 -> 45.000.000 €)
-                        Text(
-                            text = formatBudget(state.budget),
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-
-                OutlinedButton(
-                    onClick = { navigator.push(FacilitiesScreen()) },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Gerir Infraestruturas do Clube")
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                OutlinedButton(
-                    onClick = { navigator.push(com.brunogarcia.footballempireclubmanager.presentation.screens.youthacademy.YouthAcademyScreen()) },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Academia de Juniores")
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Button(
-                    onClick = { navigator.push(TransferMarketScreen()) },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
-                ) {
-                    Text("Mercado de Transferências", fontWeight = FontWeight.Bold)
-                }
-
-                // Cartão do Último Resultado
-                if (state.lastMatchResult != null) {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer
-                        )
+                    GlassCard(
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp).fillMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text("Último Resultado", style = MaterialTheme.typography.labelMedium)
-                            Spacer(modifier = Modifier.height(8.dp))
+                        Column {
+                            Text("SALDO DO CLUBE", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = state.lastMatchResult!!,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 18.sp,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                                text = formatBudget(state.budget),
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Black,
+                                color = NeonGreen
                             )
                         }
                     }
-                } else {
-                    Text(
-                        text = "A época vai começar. Prepara a equipa!",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
-                    )
-                }
-                //fim cartao ultimo Resultado
 
-                // Cartão do Próximo Jogo
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                    OutlinedButton(
+                        onClick = { navigator.push(FacilitiesScreen()) },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = NeonCyan),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, NeonCyan.copy(alpha = 0.5f))
                     ) {
-                        Text("Próximo Jogo", style = MaterialTheme.typography.labelMedium)
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(state.nextMatchText, fontWeight = FontWeight.Medium, fontSize = 18.sp)
-                        Text(state.nextMatchLoc, style = MaterialTheme.typography.bodySmall)
+                        Text("GERIR INFRAESTRUTURAS", fontWeight = FontWeight.Bold)
+                    }
+
+                    OutlinedButton(
+                        onClick = { navigator.push(com.brunogarcia.footballempireclubmanager.presentation.screens.youthacademy.YouthAcademyScreen()) },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = NeonCyan),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, NeonCyan.copy(alpha = 0.5f))
+                    ) {
+                        Text("ACADEMIA DE JUNIORES", fontWeight = FontWeight.Bold)
+                    }
+
+                    Button(
+                        onClick = { navigator.push(TransferMarketScreen()) },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = NeonCyan,
+                            contentColor = MidnightBlue
+                        )
+                    ) {
+                        Text("MERCADO DE TRANSFERÊNCIAS", fontWeight = FontWeight.Black)
+                    }
+
+                    if (state.lastMatchResult != null) {
+                        GlassCard(
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text("ÚLTIMO RESULTADO", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = state.lastMatchResult!!,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 18.sp,
+                                    color = Color.White
+                                )
+                            }
+                        }
+                    } else {
+                        Text(
+                            text = "A época vai começar. Prepara a equipa!",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                    }
+
+                    GlassCard(modifier = Modifier.fillMaxWidth()) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text("PRÓXIMO JOGO", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(state.nextMatchText, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = NeonCyan)
+                            Text(state.nextMatchLoc, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
                     }
                 }
-                //fim cartao proximo jogo
-
-
             }
         }
     }
 }
 
-// Função pura em Kotlin para formatar "45000000.0" em "45.000.000 €"
 fun formatBudget(budget: Double): String {
     val numberString = budget.toLong().toString()
     val reversed = numberString.reversed()
