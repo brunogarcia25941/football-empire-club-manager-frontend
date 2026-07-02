@@ -14,13 +14,15 @@ object MatchEngine {
         homeClubId: String,
         homeTeam: List<StartingPlayer>,
         awayClubId: String,
-        awayTeam: List<StartingPlayer>
+        awayTeam: List<StartingPlayer>,
+        isCup: Boolean = false
     ): MatchResult {
         val result = MatchResult(
             homeClubId = homeClubId,
             awayClubId = awayClubId,
             homeLineup = homeTeam.map { it.player.id },
-            awayLineup = awayTeam.map { it.player.id }
+            awayLineup = awayTeam.map { it.player.id },
+            isCup = isCup
         )
 
         // Estruturas para controlar cartões e jogadores expulsos nesta partida
@@ -126,6 +128,30 @@ object MatchEngine {
                     }
                 }
             }
+        }
+
+        // Se for um jogo de Taça e terminar empatado após 90 min, decide-se por grandes penalidades
+        if (isCup && result.homeGoals == result.awayGoals) {
+            val isHomeWinner = Random.nextBoolean()
+            val homePenalties = if (isHomeWinner) 5 else Random.nextInt(3, 5)
+            val awayPenalties = if (isHomeWinner) Random.nextInt(3, 5) else 5
+            
+            // Adicionamos 1 golo ao vencedor para o desempate na progressão de chaves
+            if (isHomeWinner) {
+                result.homeGoals++
+            } else {
+                result.awayGoals++
+            }
+            
+            result.events.add(
+                MatchEvent(
+                    minute = 90,
+                    type = MatchEventType.GOAL,
+                    playerId = "",
+                    playerName = "Decisão por Penalties: ($homePenalties - $awayPenalties)",
+                    clubId = if (isHomeWinner) homeClubId else awayClubId
+                )
+            )
         }
 
         return result

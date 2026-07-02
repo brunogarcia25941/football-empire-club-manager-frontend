@@ -32,7 +32,8 @@ import com.brunogarcia.footballempireclubmanager.domain.engine.MatchEventType
  */
 class MatchReportScreen(
     private val homeClubId: String? = null,
-    private val awayClubId: String? = null
+    private val awayClubId: String? = null,
+    private val isCup: Boolean = false
 ) : Screen {
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -46,7 +47,7 @@ class MatchReportScreen(
         LaunchedEffect(Unit) {
             if (homeClubId != null && awayClubId != null) {
                 // Se passámos IDs, é um relatório de jogo individual (detalhado)
-                screenModel.loadSingleMatch(homeClubId, awayClubId)
+                screenModel.loadSingleMatch(homeClubId, awayClubId, isCup)
             } else {
                 // Se não passámos nada, é o resumo da jornada toda
                 screenModel.loadMatchweekResults()

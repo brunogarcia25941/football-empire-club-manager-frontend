@@ -21,12 +21,30 @@ class LeagueTableScreen : Screen {
     override fun Content() {
         val screenModel = getScreenModel<LeagueTableScreenModel>()
         val table by screenModel.table.collectAsState()
+        val selectedDivision by screenModel.selectedDivision.collectAsState()
 
-        LaunchedEffect(Unit) { screenModel.refreshTable() }
+        LaunchedEffect(Unit) { screenModel.initSelectedDivision() }
 
         Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
             Text("Classificação", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(16.dp))
+
+            // Seletor de Divisão
+            TabRow(
+                selectedTabIndex = selectedDivision - 1,
+                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+            ) {
+                Tab(
+                    selected = selectedDivision == 1,
+                    onClick = { screenModel.selectDivision(1) },
+                    text = { Text("1ª Divisão", fontWeight = FontWeight.Bold) }
+                )
+                Tab(
+                    selected = selectedDivision == 2,
+                    onClick = { screenModel.selectDivision(2) },
+                    text = { Text("2ª Divisão", fontWeight = FontWeight.Bold) }
+                )
+            }
 
             // Cabeçalho da Tabela
             Row(modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)) {

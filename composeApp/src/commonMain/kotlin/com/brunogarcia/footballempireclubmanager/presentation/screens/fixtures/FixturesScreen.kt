@@ -54,8 +54,8 @@ class FixturesScreen : Screen {
                 items(matches) { match ->
                     MatchItemCard(match, onClick = {
                         if (match.isPlayed) {
-                            // Abre o relatório passando os IDs das equipas
-                            navigator.push(MatchReportScreen(match.homeClubId, match.awayClubId))
+                            // Abre o relatório passando os IDs das equipas e se é jogo da Taça
+                            navigator.push(MatchReportScreen(match.homeClubId, match.awayClubId, match.isCup))
                         }
                     })
                 }
@@ -97,11 +97,22 @@ class FixturesScreen : Screen {
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 16.sp
                     )
-                    Text(
-                        text = if (match.isHome) "Em Casa" else "Fora",
-                        fontSize = 12.sp,
-                        color = Color.Gray
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = if (match.isHome) "Em Casa" else "Fora",
+                            fontSize = 12.sp,
+                            color = Color.Gray
+                        )
+                        Text(
+                            text = if (match.isCup) "• Taça" else "• Liga",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (match.isCup) MaterialTheme.colorScheme.primary else Color.Gray
+                        )
+                    }
                 }
 
                 // Resultado ou Status

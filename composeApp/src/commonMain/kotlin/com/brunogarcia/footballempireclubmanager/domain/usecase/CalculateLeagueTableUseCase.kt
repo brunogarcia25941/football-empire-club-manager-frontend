@@ -6,11 +6,21 @@ import com.brunogarcia.footballempireclubmanager.domain.model.LeagueTableEntry
 
 class CalculateLeagueTableUseCase {
 
-    fun execute(clubs: List<Club>, results: List<MatchResult>): List<LeagueTableEntry> {
-        // Criamos um mapa para facilitar a atualização de cada clube
-        val tableMap = clubs.associate { it.id to LeagueTableEntry(it.id, it.name) }.toMutableMap()
+    fun execute(clubs: List<Club>, results: List<MatchResult>, divisionLevel: Int): List<LeagueTableEntry> {
+        // Filtramos os clubes que pertencem à divisão pretendida
+        val divisionClubs = clubs.filter { it.divisionLevel == divisionLevel }
+        val divisionClubIds = divisionClubs.map { it.id }.toSet()
+
+        // Criamos um mapa para facilitar a atualização de cada clube da divisão
+        val tableMap = divisionClubs.associate { it.id to LeagueTableEntry(it.id, it.name) }.toMutableMap()
 
         for (res in results) {
+            // Ignoramos jogos da Taça na classificação da Liga
+            if (res.isCup) continue
+            
+            // Ignoramos jogos que não pertencem a esta divisão
+            if (res.homeClubId !in divisionClubIds || res.awayClubId !in divisionClubIds) continue
+
             val home = tableMap[res.homeClubId] ?: continue
             val away = tableMap[res.awayClubId] ?: continue
 

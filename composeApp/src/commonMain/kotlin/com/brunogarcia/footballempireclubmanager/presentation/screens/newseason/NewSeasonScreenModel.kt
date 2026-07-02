@@ -44,11 +44,11 @@ class NewSeasonScreenModel(
         val allClubs = repository.getAllClubs()
         val matchHistory = repository.getMatchHistory()
 
-        val finalTable = calculateLeagueTableUseCase.execute(allClubs, matchHistory)
+        val userClub = allClubs.find { it.id == userClubId }
+        val division = userClub?.divisionLevel ?: 1
+        val finalTable = calculateLeagueTableUseCase.execute(allClubs, matchHistory, division)
         val userPositionIndex = finalTable.indexOfFirst { it.clubId == userClubId }
         val userPosition = if (userPositionIndex != -1) userPositionIndex + 1 else 10
-
-        val userClub = allClubs.find { it.id == userClubId }
         val oldBudget = userClub?.budget ?: 0.0
 
         val prize = when (userPosition) {

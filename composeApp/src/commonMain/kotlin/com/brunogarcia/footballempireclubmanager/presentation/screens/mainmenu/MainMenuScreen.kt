@@ -58,16 +58,17 @@ class MainMenuScreen : Screen {
                     Button(
                         onClick = {
                             coroutineScope.launch {
-                                // 1. Lê o ficheiro da pasta composeResources/files/
-                                val jsonBytes = Res.readBytes("files/database_init.json")
-                                val jsonString = jsonBytes.decodeToString()
+                                 // 1. Lê o ficheiro da pasta composeResources/files/
+                                 val jsonBytes = Res.readBytes("files/database_init.json")
+                                 val jsonString = jsonBytes.decodeToString()
 
-                                // 2. Manda para o cérebro processar e, no fim, vai para o main game screen!
-                                screenModel.startNewGame(jsonString) {
-                                    // Limpa o Menu Principal e mete o main game screen como ecrã inicial
-                                    navigator.push(MainGameScreen())
-                                }
-                            }
+                                 // 2. Descodifica os dados para carregar os clubes disponíveis
+                                 val jsonParser = kotlinx.serialization.json.Json { ignoreUnknownKeys = true }
+                                 val initialData = jsonParser.decodeFromString<com.brunogarcia.footballempireclubmanager.domain.model.InitialDataWrapper>(jsonString)
+
+                                 // 3. Abre o ecrã de seleção de equipas
+                                 navigator.push(SelectTeamScreen(initialData))
+                             }
                         },
                         modifier = Modifier.fillMaxWidth(0.6f),
                         contentPadding = PaddingValues(16.dp)

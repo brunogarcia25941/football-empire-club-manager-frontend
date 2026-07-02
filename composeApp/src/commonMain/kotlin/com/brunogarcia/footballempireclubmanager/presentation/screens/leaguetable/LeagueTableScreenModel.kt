@@ -15,9 +15,26 @@ class LeagueTableScreenModel(
     private val _table = MutableStateFlow<List<LeagueTableEntry>>(emptyList())
     val table: StateFlow<List<LeagueTableEntry>> = _table
 
-    fun refreshTable() {
+    private val _selectedDivision = MutableStateFlow(1)
+    val selectedDivision: StateFlow<Int> = _selectedDivision
+
+    fun initSelectedDivision() {
+        val userClubId = repository.getUserClubId()
+        val clubs = repository.getAllClubs()
+        val userClub = clubs.find { it.id == userClubId }
+        val division = userClub?.divisionLevel ?: 1
+        _selectedDivision.value = division
+        refreshTable(division)
+    }
+
+    fun selectDivision(division: Int) {
+        _selectedDivision.value = division
+        refreshTable(division)
+    }
+
+    private fun refreshTable(division: Int) {
         val clubs = repository.getAllClubs()
         val results = repository.getMatchHistory()
-        _table.value = calculateLeagueTableUseCase.execute(clubs, results)
+        _table.value = calculateLeagueTableUseCase.execute(clubs, results, division)
     }
 }

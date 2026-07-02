@@ -61,7 +61,7 @@ class MatchReportScreenModel(private val repository: GameRepository) : ScreenMod
 
         val results = lastWeekFixtures.mapNotNull { fixture ->
             val match = history.find { 
-                it.homeClubId == fixture.homeClubId && it.awayClubId == fixture.awayClubId 
+                it.homeClubId == fixture.homeClubId && it.awayClubId == fixture.awayClubId && it.isCup == fixture.isCup
             }
             val homeClub = allClubs.find { it.id == fixture.homeClubId }
             val awayClub = allClubs.find { it.id == fixture.awayClubId }
@@ -91,14 +91,14 @@ class MatchReportScreenModel(private val repository: GameRepository) : ScreenMod
     /**
      * Carrega detalhes de um jogo específico (para o calendário).
      */
-    fun loadSingleMatch(homeClubId: String, awayClubId: String) {
+    fun loadSingleMatch(homeClubId: String, awayClubId: String, isCup: Boolean = false) {
         _state.update { it.copy(isLoading = true) }
         val allClubs = repository.getAllClubs()
         val homeClub = allClubs.find { it.id == homeClubId }
         val awayClub = allClubs.find { it.id == awayClubId }
         val history = repository.getMatchHistory()
 
-        val matchResult = history.find { it.homeClubId == homeClubId && it.awayClubId == awayClubId }
+        val matchResult = history.find { it.homeClubId == homeClubId && it.awayClubId == awayClubId && it.isCup == isCup }
 
         if (homeClub != null && awayClub != null && matchResult != null) {
             _state.update {

@@ -14,7 +14,8 @@ data class MatchDisplayItem(
     val isHome: Boolean,
     val homeGoals: Int? = null,
     val awayGoals: Int? = null,
-    val isPlayed: Boolean = false
+    val isPlayed: Boolean = false,
+    val isCup: Boolean = false
 )
 
 class FixturesScreenModel(private val repository: GameRepository) : ScreenModel {
@@ -41,7 +42,7 @@ class FixturesScreenModel(private val repository: GameRepository) : ScreenModel 
 
             // 2. Verificar se este jogo já aconteceu (procurando no histórico pelas duas equipas)
             val playedMatch = history.find {
-                it.homeClubId == fixture.homeClubId && it.awayClubId == fixture.awayClubId
+                it.homeClubId == fixture.homeClubId && it.awayClubId == fixture.awayClubId && it.isCup == fixture.isCup
             }
 
             if (playedMatch != null) {
@@ -55,7 +56,8 @@ class FixturesScreenModel(private val repository: GameRepository) : ScreenModel 
                         isHome = isHome,
                         homeGoals = playedMatch.homeGoals,
                         awayGoals = playedMatch.awayGoals,
-                        isPlayed = true
+                        isPlayed = true,
+                        isCup = fixture.isCup
                     )
                 )
             } else {
@@ -67,7 +69,8 @@ class FixturesScreenModel(private val repository: GameRepository) : ScreenModel 
                         awayClubId = fixture.awayClubId,
                         opponentName = opponentName,
                         isHome = isHome,
-                        isPlayed = false
+                        isPlayed = false,
+                        isCup = fixture.isCup
                     )
                 )
             }

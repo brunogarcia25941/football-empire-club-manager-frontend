@@ -6,24 +6,30 @@ import com.brunogarcia.footballempireclubmanager.domain.engine.StartingPlayer
 import com.brunogarcia.footballempireclubmanager.domain.model.Club
 import com.brunogarcia.footballempireclubmanager.domain.model.Player
 import com.brunogarcia.footballempireclubmanager.domain.model.Position
+import com.brunogarcia.footballempireclubmanager.domain.model.Fixture
 
 class SimulateMatchweekUseCase {
 
     /**
-     * @param fixtures Uma lista de pares (Equipa Casa, Equipa Fora) que vão jogar nesta semana.
+     * @param thisWeekFixtures A lista de Fixtures (jogos agendados) para simular nesta semana.
+     * @param allClubs A lista de clubes na liga.
      * @param allPlayers A base de dados completa de jogadores no save atual.
-     * @param userClubId O ID do clube controlado pelo utilizador (para sabermos que não devemos mexer no 11 inicial).
-     * @param userStarting11 O 11 inicial  definido no ecrã de Táticas.
+     * @param userClubId O ID do clube controlado pelo utilizador.
+     * @param userStarting11 O 11 inicial definido no ecrã de Táticas.
      */
     fun execute(
-        fixtures: List<Pair<Club, Club>>,
+        thisWeekFixtures: List<Fixture>,
+        allClubs: List<Club>,
         allPlayers: List<Player>,
         userClubId: String,
         userStarting11: List<StartingPlayer>
     ): List<MatchResult> {
         val weeklyResults = mutableListOf<MatchResult>()
 
-        for ((homeClub, awayClub) in fixtures) {
+        for (fixture in thisWeekFixtures) {
+            val homeClub = allClubs.find { it.id == fixture.homeClubId } ?: continue
+            val awayClub = allClubs.find { it.id == fixture.awayClubId } ?: continue
+
             // 1. Prepara a Equipa da Casa
             val homeTeam11 = if (homeClub.id == userClubId && userStarting11.isNotEmpty()) {
                 userStarting11
@@ -43,7 +49,8 @@ class SimulateMatchweekUseCase {
                 homeClubId = homeClub.id,
                 homeTeam = homeTeam11,
                 awayClubId = awayClub.id,
-                awayTeam = awayTeam11
+                awayTeam = awayTeam11,
+                isCup = fixture.isCup
             )
 
             weeklyResults.add(result)

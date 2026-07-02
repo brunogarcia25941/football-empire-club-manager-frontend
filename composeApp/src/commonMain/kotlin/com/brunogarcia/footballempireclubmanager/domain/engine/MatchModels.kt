@@ -28,7 +28,8 @@ data class MatchResult(
     var awayGoals: Int = 0,
     val events: MutableList<MatchEvent> = mutableListOf(),
     val homeLineup: List<String> = emptyList(),
-    val awayLineup: List<String> = emptyList()
+    val awayLineup: List<String> = emptyList(),
+    var isCup: Boolean = false
 )
 
 // Uma estrutura temporária para ajudar o motor de jogo a saber em que posição

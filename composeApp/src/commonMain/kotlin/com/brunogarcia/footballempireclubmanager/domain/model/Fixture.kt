@@ -5,5 +5,6 @@ import kotlinx.serialization.Serializable
 data class Fixture(
     val week: Int,
     val homeClubId: String,
-    val awayClubId: String
+    val awayClubId: String,
+    val isCup: Boolean = false
 )

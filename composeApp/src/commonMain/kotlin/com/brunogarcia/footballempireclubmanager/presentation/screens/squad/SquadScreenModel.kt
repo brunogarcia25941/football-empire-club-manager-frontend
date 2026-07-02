@@ -95,8 +95,7 @@ class SquadScreenModel(
 
         if (clubIndex != -1 && playerIndex != -1) {
             val club = allClubs[clubIndex]
-            val overall = player.getEffectiveOverall(player.mainPosition)
-            val renewalCost = (overall * overall * 100).toDouble()
+            val renewalCost = player.getMarketValue() * 0.1
 
             if (club.budget >= renewalCost) {
                 allClubs[clubIndex] = club.copy(budget = club.budget - renewalCost)

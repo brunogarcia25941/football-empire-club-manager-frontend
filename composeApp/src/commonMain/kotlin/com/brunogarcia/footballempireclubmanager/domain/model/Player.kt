@@ -1,6 +1,7 @@
 package com.brunogarcia.footballempireclubmanager.domain.model
 
 import kotlin.math.roundToInt
+import kotlin.math.pow
 import com.brunogarcia.footballempireclubmanager.domain.engine.PositionWeightRules
 import kotlinx.serialization.Serializable
 
@@ -42,17 +43,18 @@ data class Player(
     var contractYears: Int = 3,
     var isListed: Boolean = false,
     var transferOffer: Double? = null,
-    var offerClubName: String? = null
+    var offerClubName: String? = null,
+    var seasonMatches: Int = 0
 ) {
     /**
-     * Calcula o Overall Efetivo do jogador se jogar na [targetPosition].
+     * Calcula o Overall Base do jogador na [targetPosition] sem considerar cansaço ou moral.
      * Utiliza uma Média Ponderada com base nos atributos do jogador.
      */
-    fun getEffectiveOverall(targetPosition: Position): Int {
+    fun getBaseOverall(targetPosition: Position): Int {
         // Vai buscar os pesos da posição. Se por algum motivo falhar, retorna 0.
         val w = PositionWeightRules.weights[targetPosition] ?: return 0
 
-        val baseOverall = (
+        var baseOverall = (
                 (pace * w.pace) +
                         (strength * w.strength) +
                         (tackling * w.tackling) +
@@ -73,19 +75,53 @@ data class Player(
         val isFieldPlayerAsGk = mainPosition != Position.GK && targetPosition == Position.GK
         val isGkAsFieldPlayer = mainPosition == Position.GK && targetPosition != Position.GK
 
-        var finalOverall = baseOverall
         if (isFieldPlayerAsGk || isGkAsFieldPlayer) {
-            finalOverall *= 0.1 // Corta 90% das capacidades, é um desastre tático!
+            baseOverall *= 0.1 // Corta 90% das capacidades, é um desastre tático!
         }
+
+        return baseOverall.roundToInt()
+    }
+
+    /**
+     * Calcula o Overall Efetivo do jogador se jogar na [targetPosition].
+     * Leva em conta o cansaço (stamina) e a moral do jogador no rendimento em campo.
+     */
+    fun getEffectiveOverall(targetPosition: Position): Int {
+        val baseOverall = getBaseOverall(targetPosition).toDouble()
 
         // A moral e o cansaço (Stamina) também afetam o rendimento no dia de jogo!
         // Um jogador a cair de cansaço (stamina = 50) não joga a 100%.
         val conditionMultiplier = (stamina.toDouble() / 100.0) * 0.8 + 0.2 // Pesa 80% do overall atual
         val moraleMultiplier = (morale.toDouble() / 100.0) * 0.2 + 0.8     // Pesa 20% do overall atual
 
-        finalOverall = finalOverall * conditionMultiplier * moraleMultiplier
+        val finalOverall = baseOverall * conditionMultiplier * moraleMultiplier
 
         return finalOverall.roundToInt()
+    }
+
+    /**
+     * Calcula o valor de mercado do jogador com base no seu Overall Base e na Idade.
+     * Utiliza uma curva exponencial de overall e um multiplicador de idade.
+     */
+    fun getMarketValue(): Double {
+        val overall = getBaseOverall(mainPosition)
+        
+        // Base value: exponencial com base de 1.23.
+        // OVR 50 = 10k, OVR 70 = 628k, OVR 80 = 4.9M, OVR 83 = 9.2M, OVR 90 = 39M
+        val safeOvrDiff = (overall - 50).coerceAtLeast(0)
+        val baseValue = 10000.0 * 1.23.pow(safeOvrDiff.toDouble())
+        
+        // Multiplicador baseado na idade (veteranos desvalorizam e jovens têm bónus de potencial)
+        val ageMultiplier = when {
+            age <= 21 -> 1.4
+            age <= 25 -> 1.2
+            age <= 28 -> 1.0
+            age <= 31 -> 0.7
+            age <= 33 -> 0.4
+            else -> 0.15
+        }
+        
+        return baseValue * ageMultiplier
     }
 }
 

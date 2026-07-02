@@ -57,12 +57,12 @@ class TransferMarketScreenModel(
             .filter { it.clubId != userClubId }
             .map { p ->
                 val sellerName = allClubs.find { it.id == p.clubId }?.name ?: "Agente Livre"
-                val ovr = p.getEffectiveOverall(p.mainPosition)
+                val ovr = p.getBaseOverall(p.mainPosition)
                 MarketItem(
                     player = p,
                     sellerClubName = sellerName,
                     overall = ovr,
-                    price = buyPlayerUseCase.calculatePlayerValue(ovr)
+                    price = buyPlayerUseCase.calculatePlayerValue(p)
                 )
             }
             .sortedByDescending { it.overall }

@@ -1,5 +1,6 @@
 package com.brunogarcia.footballempireclubmanager.domain.usecase
 
+import com.brunogarcia.footballempireclubmanager.domain.model.Player
 import com.brunogarcia.footballempireclubmanager.domain.repository.GameRepository
 
 class BuyPlayerUseCase(private val repository: GameRepository) {
@@ -43,8 +44,8 @@ class BuyPlayerUseCase(private val repository: GameRepository) {
         return false // Não há dinheiro
     }
 
-    // Fórmula para o preço base (Ex: Overall 80 = 6.4M | Overall 90 = 8.1M)
-    fun calculatePlayerValue(overall: Int): Double {
-        return (overall * overall * 1000).toDouble()
+    // Fórmula para obter o preço dinâmico e realista do jogador
+    fun calculatePlayerValue(player: Player): Double {
+        return player.getMarketValue()
     }
 }

@@ -8,6 +8,7 @@ import com.brunogarcia.footballempireclubmanager.presentation.screens.facilities
 import com.brunogarcia.footballempireclubmanager.presentation.screens.fixtures.FixturesScreenModel
 import com.brunogarcia.footballempireclubmanager.presentation.screens.leaguetable.LeagueTableScreenModel
 import com.brunogarcia.footballempireclubmanager.presentation.screens.mainmenu.MainMenuScreenModel
+import com.brunogarcia.footballempireclubmanager.presentation.screens.mainmenu.SelectTeamScreenModel
 import com.brunogarcia.footballempireclubmanager.presentation.screens.matchreport.MatchReportScreenModel
 import com.brunogarcia.footballempireclubmanager.presentation.screens.squad.SquadScreenModel
 import com.brunogarcia.footballempireclubmanager.presentation.screens.tactics.TacticsScreenModel
@@ -44,4 +45,7 @@ val appModule = module {
     factory { TransferMarketScreenModel(get(), get()) }
     factory { NewSeasonScreenModel(get(), get(), get()) }
     factory { com.brunogarcia.footballempireclubmanager.presentation.screens.youthacademy.YouthAcademyScreenModel(get()) }
+    factory { (initialData: com.brunogarcia.footballempireclubmanager.domain.model.InitialDataWrapper) ->
+        SelectTeamScreenModel(initialData, get(), get())
+    }
 }
