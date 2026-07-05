@@ -15,7 +15,8 @@ data class DashboardState(
     val isLoading: Boolean = false,
     val lastMatchResult: String? = null,
     val nextMatchText: String = "A carregar...",
-    val nextMatchLoc: String = ""
+    val nextMatchLoc: String = "",
+    val newOffersCount: Int = 0
 )
 
 class DashboardScreenModel(
@@ -33,6 +34,7 @@ class DashboardScreenModel(
     fun loadDashboardData() {
         val userClubId = repository.getUserClubId()
         val allClubs = repository.getAllClubs()
+        val allPlayers = repository.getAllPlayers()
         val userClub = allClubs.find { it.id == userClubId }
         val currentWeek = repository.getCurrentWeek()
         val allFixtures = repository.getFixtures() // Lemos o Calendário!
@@ -82,6 +84,9 @@ class DashboardScreenModel(
                 lastMatchStr = "Folga na última semana"
             }
 
+            val userPlayersWithOffers = allPlayers.filter { it.clubId == userClubId && it.transferOffer != null }
+            val offersCount = userPlayersWithOffers.size
+
             _state.value = DashboardState(
                 clubName = userClub.name,
                 budget = userClub.budget,
@@ -89,7 +94,8 @@ class DashboardScreenModel(
                 isLoading = false,
                 lastMatchResult = lastMatchStr,
                 nextMatchText = nextMatchStr,
-                nextMatchLoc = nextLocStr
+                nextMatchLoc = nextLocStr,
+                newOffersCount = offersCount
             )
         }
     }

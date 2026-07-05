@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.getScreenModel
 import com.brunogarcia.footballempireclubmanager.domain.model.Player
+import com.brunogarcia.footballempireclubmanager.domain.model.Position
 import com.brunogarcia.footballempireclubmanager.presentation.theme.AlertRed
 import com.brunogarcia.footballempireclubmanager.presentation.theme.DarkNavy
 import com.brunogarcia.footballempireclubmanager.presentation.theme.MidnightBlue
@@ -103,12 +104,17 @@ class TacticsScreen : Screen {
                     }
                 } else {
                     // MODO 2: Lista do Plantel para Selecionar
+                    val targetRole = state.slots.find { it.id == state.selectedSlotId }?.role ?: Position.GK
                     LazyColumn(
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(state.squad) { player ->
-                            PlayerSelectionItem(player = player, onClick = { screenModel.assignPlayerToSlot(player) })
+                            PlayerSelectionItem(
+                                player = player, 
+                                targetRole = targetRole, 
+                                onClick = { screenModel.assignPlayerToSlot(player) }
+                            )
                         }
                     }
                 }
@@ -217,8 +223,8 @@ class TacticsScreen : Screen {
     }
 
     @Composable
-    private fun PlayerSelectionItem(player: Player, onClick: () -> Unit) {
-        val overall = player.getBaseOverall(player.mainPosition)
+    private fun PlayerSelectionItem(player: Player, targetRole: Position, onClick: () -> Unit) {
+        val overall = player.getEffectiveOverall(targetRole)
 
         Card(
             modifier = Modifier
@@ -269,7 +275,7 @@ class TacticsScreen : Screen {
                     )
                 }
 
-                // OVR Base
+                // OVR Efetivo
                 Box(
                     modifier = Modifier
                         .size(36.dp)

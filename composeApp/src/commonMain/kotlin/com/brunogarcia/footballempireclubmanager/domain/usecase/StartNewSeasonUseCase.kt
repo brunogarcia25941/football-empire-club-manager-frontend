@@ -122,16 +122,26 @@ class StartNewSeasonUseCase(
                 isListed = newIsListed,
                 transferOffer = null, // Limpa propostas pendentes do ano anterior
                 offerClubName = null,
-                seasonMatches = 0 // Reinicia os jogos jogados na nova época
+                seasonMatches = 0, // Reinicia os jogos jogados na nova época
+                lastTransferWeek = -1
             )
         }.toMutableList()
 
-        // 4b. Gerar novos jovens da Academia (Juniores) no final da época
-        val userClubUpdated = updatedClubs.find { it.id == userClubId }
-        val academyLevel = userClubUpdated?.youthAcademyLevel ?: 1
-        for (i in 1..3) {
-            val youthPlayer = com.brunogarcia.footballempireclubmanager.domain.engine.YouthGenerator.generateYouthPlayer(userClubId, academyLevel)
-            updatedPlayers.add(youthPlayer)
+        // 4b. Gerar novos jovens da Academia (Juniores) no final da época para todos os clubes
+        for (club in updatedClubs) {
+            val academyLevel = club.youthAcademyLevel
+            val numYouth = if (club.id == userClubId) 3 else 2 // Utilizador gera 3, IA gera 2 para equilíbrio
+            for (i in 1..numYouth) {
+                val youthPlayer = com.brunogarcia.footballempireclubmanager.domain.engine.YouthGenerator.generateYouthPlayer(club.id, academyLevel)
+                val finalPlayer = if (club.id == userClubId) {
+                    // Para o utilizador, inicia na academia (com o prefixo YOUTH_ no clubId)
+                    youthPlayer
+                } else {
+                    // Para a IA, é promovido diretamente ao plantel profissional (com contrato padrão de 3 anos)
+                    youthPlayer.copy(clubId = club.id, contractYears = 3)
+                }
+                updatedPlayers.add(finalPlayer)
+            }
         }
 
         // 5. Reinicializar o jogo em memória com os dados limpos (mantendo clubes e jogadores atualizados)

@@ -81,99 +81,166 @@ class TransferMarketScreen : Screen {
                     .background(Brush.verticalGradient(listOf(MidnightBlue, DarkNavy)))
                     .padding(paddingValues)
             ) {
+                var selectedTab by remember { mutableStateOf(0) }
+
                 Column(modifier = Modifier.fillMaxSize()) {
                     
-                    OutlinedTextField(
-                        value = state.searchQuery,
-                        onValueChange = { screenModel.onSearchQueryChanged(it) },
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                        placeholder = { Text("Pesquisar jogador...", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)) },
-                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = NeonCyan) },
-                        shape = RoundedCornerShape(12.dp),
-                        singleLine = true,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White,
-                            focusedBorderColor = NeonCyan,
-                            unfocusedBorderColor = com.brunogarcia.footballempireclubmanager.presentation.theme.GlassBorder,
-                            focusedContainerColor = DarkNavy.copy(alpha = 0.6f),
-                            unfocusedContainerColor = DarkNavy.copy(alpha = 0.3f)
-                        )
-                    )
-
-                    LazyRow(
-                        contentPadding = PaddingValues(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.padding(bottom = 8.dp)
+                    // Seletor Segmentado Moderno
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 12.dp)
+                            .background(DarkNavy.copy(alpha = 0.6f), RoundedCornerShape(10.dp))
+                            .padding(4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        item {
-                            FilterChip(
-                                selected = state.selectedPosition == null,
-                                onClick = { screenModel.onPositionFilterChanged(null) },
-                                label = { Text("TODOS", fontWeight = FontWeight.Bold) },
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = NeonCyan,
-                                    selectedLabelColor = MidnightBlue,
-                                    containerColor = DarkNavy.copy(alpha = 0.5f),
-                                    labelColor = NeonCyan
-                                ),
-                                border = FilterChipDefaults.filterChipBorder(
-                                    enabled = true,
-                                    selected = state.selectedPosition == null,
-                                    borderColor = NeonCyan.copy(alpha = 0.5f),
-                                    selectedBorderColor = NeonCyan
-                                )
-                            )
-                        }
-                        items(positions) { pos ->
-                            FilterChip(
-                                selected = state.selectedPosition == pos,
-                                onClick = { screenModel.onPositionFilterChanged(pos) },
-                                label = { Text(pos, fontWeight = FontWeight.Bold) },
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = NeonCyan,
-                                    selectedLabelColor = MidnightBlue,
-                                    containerColor = DarkNavy.copy(alpha = 0.5f),
-                                    labelColor = NeonCyan
-                                ),
-                                border = FilterChipDefaults.filterChipBorder(
-                                    enabled = true,
-                                    selected = state.selectedPosition == pos,
-                                    borderColor = NeonCyan.copy(alpha = 0.5f),
-                                    selectedBorderColor = NeonCyan
-                                )
-                            )
-                        }
-                    }
-
-                    GlassCard(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(16.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(if (selectedTab == 0) NeonCyan else Color.Transparent)
+                                .clickable { selectedTab = 0 }
+                                .padding(vertical = 10.dp),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Text("ORÇAMENTO DISPONÍVEL:", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
-                            Text(formatPrice(state.myBudget), fontWeight = FontWeight.Black, color = NeonGreen, fontSize = 18.sp)
+                            Text(
+                                text = "MERCADO",
+                                fontWeight = FontWeight.Bold,
+                                color = if (selectedTab == 0) MidnightBlue else Color.White,
+                                fontSize = 13.sp
+                            )
+                        }
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(if (selectedTab == 1) NeonCyan else Color.Transparent)
+                                .clickable { selectedTab = 1; screenModel.loadMarket() }
+                                .padding(vertical = 10.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "HISTÓRICO DA ÉPOCA",
+                                fontWeight = FontWeight.Bold,
+                                color = if (selectedTab == 1) MidnightBlue else Color.White,
+                                fontSize = 13.sp
+                            )
                         }
                     }
 
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        items(state.filteredPlayers) { item ->
-                            PlayerMarketCard(item = item, canAfford = state.myBudget >= item.price) {
-                                screenModel.onPlayerClicked(item)
+                    if (selectedTab == 0) {
+                        // --- ABA 1: MERCADO DE COMPRAS ---
+                        OutlinedTextField(
+                            value = state.searchQuery,
+                            onValueChange = { screenModel.onSearchQueryChanged(it) },
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                            placeholder = { Text("Pesquisar jogador...", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)) },
+                            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = NeonCyan) },
+                            shape = RoundedCornerShape(12.dp),
+                            singleLine = true,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White,
+                                focusedBorderColor = NeonCyan,
+                                unfocusedBorderColor = com.brunogarcia.footballempireclubmanager.presentation.theme.GlassBorder,
+                                focusedContainerColor = DarkNavy.copy(alpha = 0.6f),
+                                unfocusedContainerColor = DarkNavy.copy(alpha = 0.3f)
+                            )
+                        )
+
+                        LazyRow(
+                            contentPadding = PaddingValues(horizontal = 16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        ) {
+                            item {
+                                FilterChip(
+                                    selected = state.selectedPosition == null,
+                                    onClick = { screenModel.onPositionFilterChanged(null) },
+                                    label = { Text("TODOS", fontWeight = FontWeight.Bold) },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = NeonCyan,
+                                        selectedLabelColor = MidnightBlue,
+                                        containerColor = DarkNavy.copy(alpha = 0.5f),
+                                        labelColor = NeonCyan
+                                    ),
+                                    border = FilterChipDefaults.filterChipBorder(
+                                        enabled = true,
+                                        selected = state.selectedPosition == null,
+                                        borderColor = NeonCyan.copy(alpha = 0.5f),
+                                        selectedBorderColor = NeonCyan
+                                    )
+                                )
+                            }
+                            items(positions) { pos ->
+                                FilterChip(
+                                    selected = state.selectedPosition == pos,
+                                    onClick = { screenModel.onPositionFilterChanged(pos) },
+                                    label = { Text(pos, fontWeight = FontWeight.Bold) },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = NeonCyan,
+                                        selectedLabelColor = MidnightBlue,
+                                        containerColor = DarkNavy.copy(alpha = 0.5f),
+                                        labelColor = NeonCyan
+                                    ),
+                                    border = FilterChipDefaults.filterChipBorder(
+                                        enabled = true,
+                                        selected = state.selectedPosition == pos,
+                                        borderColor = NeonCyan.copy(alpha = 0.5f),
+                                        selectedBorderColor = NeonCyan
+                                    )
+                                )
                             }
                         }
-                        
-                        if (state.filteredPlayers.isEmpty()) {
-                            item {
-                                Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
-                                    Text("Nenhum jogador listado de momento.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+                        GlassCard(
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("ORÇAMENTO DISPONÍVEL:", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                                Text(formatPrice(state.myBudget), fontWeight = FontWeight.Black, color = NeonGreen, fontSize = 18.sp)
+                            }
+                        }
+
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            items(state.filteredPlayers) { item ->
+                                PlayerMarketCard(item = item, canAfford = state.myBudget >= item.price) {
+                                    screenModel.onPlayerClicked(item)
+                                }
+                            }
+                            
+                            if (state.filteredPlayers.isEmpty()) {
+                                item {
+                                    Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
+                                        Text("Nenhum jogador listado de momento.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        // --- ABA 2: HISTÓRICO DA ÉPOCA ---
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            items(state.transferHistory) { event ->
+                                TransferEventCard(event = event)
+                            }
+                            
+                            if (state.transferHistory.isEmpty()) {
+                                item {
+                                    Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
+                                        Text("Nenhuma transferência registada nesta época.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
                                 }
                             }
                         }
@@ -353,6 +420,60 @@ class TransferMarketScreen : Screen {
                 fontWeight = FontWeight.Black,
                 color = attrColor
             )
+        }
+    }
+
+    @Composable
+    private fun TransferEventCard(event: com.brunogarcia.footballempireclubmanager.domain.model.TransferEvent) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = com.brunogarcia.footballempireclubmanager.presentation.theme.GlassSurface
+            ),
+            border = BorderStroke(
+                1.dp,
+                com.brunogarcia.footballempireclubmanager.presentation.theme.GlassBorder.copy(alpha = 0.15f)
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Row(
+                modifier = Modifier.padding(14.dp).fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(50.dp)) {
+                    Text(event.playerPosition, fontWeight = FontWeight.Black, fontSize = 11.sp, color = NeonCyan)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Box(
+                        modifier = Modifier.size(36.dp).clip(CircleShape).background(NeonCyan.copy(alpha = 0.15f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(event.overall.toString(), fontWeight = FontWeight.Black, color = NeonCyan, fontSize = 14.sp)
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(event.playerName, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color.White)
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(event.fromClubName, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                        Text(" ➔ ", color = NeonGreen, fontSize = 12.sp)
+                        Text(event.toClubName, fontWeight = FontWeight.Medium, color = Color.White, fontSize = 12.sp)
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text("Semana ${event.week}", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
+                }
+
+                val priceText = if (event.fee == 0.0) "Custo Zero" else formatPrice(event.fee)
+                Text(
+                    text = priceText,
+                    fontWeight = FontWeight.Black,
+                    color = if (event.fee == 0.0) NeonCyan else NeonGreen,
+                    fontSize = 14.sp
+                )
+            }
         }
     }
 }

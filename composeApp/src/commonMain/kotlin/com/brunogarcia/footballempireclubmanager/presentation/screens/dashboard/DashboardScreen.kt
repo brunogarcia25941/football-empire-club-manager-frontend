@@ -1,6 +1,8 @@
 package com.brunogarcia.footballempireclubmanager.presentation.screens.dashboard
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
@@ -78,90 +80,136 @@ class DashboardScreen : Screen {
                     .background(Brush.verticalGradient(listOf(MidnightBlue, DarkNavy)))
                     .padding(paddingValues)
             ) {
+                val scrollState = rememberScrollState()
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
+                        .verticalScroll(scrollState)
                         .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
-                    GlassCard(
-                        modifier = Modifier.fillMaxWidth()
+                    // SEÇÃO 1: Semana e Orçamento (Lado a Lado)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
+                        // Card Calendário / Semana
+                        GlassCard(
+                            modifier = Modifier.weight(1f)
                         ) {
-                            Icon(
-                                Icons.Filled.DateRange, 
-                                contentDescription = null, 
-                                modifier = Modifier.size(32.dp),
-                                tint = NeonCyan
-                            )
-                            Spacer(modifier = Modifier.width(16.dp))
-                            Column {
-                                Text("CALENDÁRIO DA LIGA", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                Text("Semana ${state.currentWeek}", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = NeonCyan)
+                            Column(
+                                modifier = Modifier.padding(12.dp)
+                            ) {
+                                Text("CALENDÁRIO", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        Icons.Filled.DateRange, 
+                                        contentDescription = null, 
+                                        modifier = Modifier.size(18.dp),
+                                        tint = NeonCyan
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text("Semana ${state.currentWeek}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = NeonCyan)
+                                }
+                            }
+                        }
+
+                        // Card Saldo / Orçamento
+                        GlassCard(
+                            modifier = Modifier.weight(1.2f)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(12.dp)
+                            ) {
+                                Text("SALDO DO CLUBE", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = formatBudget(state.budget),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Black,
+                                    color = NeonGreen,
+                                    maxLines = 1
+                                )
                             }
                         }
                     }
 
-                    GlassCard(
-                        modifier = Modifier.fillMaxWidth()
+                    // SEÇÃO 2: Botões de Ação (Grelha 2x2 para poupar espaço vertical)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Column {
-                            Text("SALDO DO CLUBE", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Spacer(modifier = Modifier.height(4.dp))
+                        Button(
+                            onClick = { navigator.push(com.brunogarcia.footballempireclubmanager.presentation.screens.inbox.InboxScreen()) },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (state.newOffersCount > 0) NeonGreen else com.brunogarcia.footballempireclubmanager.presentation.theme.GlassSurface,
+                                contentColor = if (state.newOffersCount > 0) MidnightBlue else Color.White
+                            ),
+                            border = if (state.newOffersCount > 0) null else androidx.compose.foundation.BorderStroke(1.dp, NeonCyan.copy(alpha = 0.4f)),
+                            contentPadding = PaddingValues(vertical = 12.dp)
+                        ) {
                             Text(
-                                text = formatBudget(state.budget),
-                                style = MaterialTheme.typography.headlineMedium,
-                                fontWeight = FontWeight.Black,
-                                color = NeonGreen
+                                text = if (state.newOffersCount > 0) "CORREIO (${state.newOffersCount})" else "CORREIO (0)",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 13.sp
                             )
+                        }
+
+                        Button(
+                            onClick = { navigator.push(TransferMarketScreen()) },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = NeonCyan,
+                                contentColor = MidnightBlue
+                            ),
+                            contentPadding = PaddingValues(vertical = 12.dp)
+                        ) {
+                            Text("MERCADO", fontWeight = FontWeight.Black, fontSize = 13.sp)
                         }
                     }
 
-                    OutlinedButton(
-                        onClick = { navigator.push(FacilitiesScreen()) },
+                    Row(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = NeonCyan),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, NeonCyan.copy(alpha = 0.5f))
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Text("GERIR INFRAESTRUTURAS", fontWeight = FontWeight.Bold)
+                        OutlinedButton(
+                            onClick = { navigator.push(FacilitiesScreen()) },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = NeonCyan),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, NeonCyan.copy(alpha = 0.5f)),
+                            contentPadding = PaddingValues(vertical = 12.dp)
+                        ) {
+                            Text("INFRAESTRUTURAS", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                        }
+
+                        OutlinedButton(
+                            onClick = { navigator.push(com.brunogarcia.footballempireclubmanager.presentation.screens.youthacademy.YouthAcademyScreen()) },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = NeonCyan),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, NeonCyan.copy(alpha = 0.5f)),
+                            contentPadding = PaddingValues(vertical = 12.dp)
+                        ) {
+                            Text("ACADEMIA", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                        }
                     }
 
-                    OutlinedButton(
-                        onClick = { navigator.push(com.brunogarcia.footballempireclubmanager.presentation.screens.youthacademy.YouthAcademyScreen()) },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = NeonCyan),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, NeonCyan.copy(alpha = 0.5f))
-                    ) {
-                        Text("ACADEMIA DE JUNIORES", fontWeight = FontWeight.Bold)
-                    }
-
-                    Button(
-                        onClick = { navigator.push(TransferMarketScreen()) },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = NeonCyan,
-                            contentColor = MidnightBlue
-                        )
-                    ) {
-                        Text("MERCADO DE TRANSFERÊNCIAS", fontWeight = FontWeight.Black)
-                    }
-
+                    // SEÇÃO 3: Estado de Resultados e Próximo Jogo
                     if (state.lastMatchResult != null) {
                         GlassCard(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Column(
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier.padding(16.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Text("ÚLTIMO RESULTADO", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                Spacer(modifier = Modifier.height(8.dp))
+                                Text("ÚLTIMO RESULTADO", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Spacer(modifier = Modifier.height(6.dp))
                                 Text(
                                     text = state.lastMatchResult!!,
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 18.sp,
+                                    fontSize = 16.sp,
                                     color = Color.White
                                 )
                             }
@@ -171,18 +219,19 @@ class DashboardScreen : Screen {
                             text = "A época vai começar. Prepara a equipa!",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(vertical = 8.dp)
+                            modifier = Modifier.padding(vertical = 4.dp).align(Alignment.CenterHorizontally)
                         )
                     }
 
                     GlassCard(modifier = Modifier.fillMaxWidth()) {
                         Column(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.padding(16.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Text("PRÓXIMO JOGO", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(state.nextMatchText, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = NeonCyan)
+                            Text("PRÓXIMO JOGO", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(state.nextMatchText, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = NeonCyan)
+                            Spacer(modifier = Modifier.height(2.dp))
                             Text(state.nextMatchLoc, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }

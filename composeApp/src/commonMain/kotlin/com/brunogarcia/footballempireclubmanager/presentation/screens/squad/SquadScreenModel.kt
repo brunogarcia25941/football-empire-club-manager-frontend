@@ -138,9 +138,24 @@ class SquadScreenModel(
                 isListed = false,
                 transferOffer = null,
                 offerClubName = null,
-                contractYears = 2 // Novo contrato com o novo clube
+                contractYears = 2, // Novo contrato com o novo clube
+                lastTransferWeek = repository.getCurrentWeek()
             )
             allPlayers[playerIndex] = updatedPlayer
+
+            // Registar no Histórico de Transferências da Liga
+            val transferEvent = com.brunogarcia.footballempireclubmanager.domain.model.TransferEvent(
+                week = repository.getCurrentWeek(),
+                playerName = player.name,
+                playerPosition = player.mainPosition.name,
+                overall = player.getBaseOverall(player.mainPosition),
+                fromClubName = club.name,
+                toClubName = buyerClub?.name ?: "Desconhecido",
+                fee = offerAmount
+            )
+            val currentHistory = repository.getTransferHistory().toMutableList()
+            currentHistory.add(transferEvent)
+            repository.saveTransferHistory(currentHistory)
 
             repository.updateClubsAndPlayers(allClubs, allPlayers)
             repository.saveGameToDisk()

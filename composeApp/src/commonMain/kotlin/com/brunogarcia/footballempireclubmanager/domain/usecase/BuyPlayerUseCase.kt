@@ -31,8 +31,28 @@ class BuyPlayerUseCase(private val repository: GameRepository) {
                 allClubs[sellerIndex] = sellerClub.copy(budget = sellerClub.budget + price)
             }
 
-            // 3. Transfere o jogador e dá-lhe um contrato de 3 anos
-            allPlayers[playerIndex] = player.copy(clubId = userClubId, contractYears = 3, isListed = false)
+            // 3. Transfere o jogador, dá-lhe um contrato de 3 anos e define a semana de transferência
+            allPlayers[playerIndex] = player.copy(
+                clubId = userClubId, 
+                contractYears = 3, 
+                isListed = false, 
+                lastTransferWeek = repository.getCurrentWeek()
+            )
+
+            // Registar no Histórico de Transferências da Liga
+            val sellerClubName = if (player.clubId.isEmpty()) "Agente Livre" else allClubs.find { it.id == player.clubId }?.name ?: "Desconhecido"
+            val transferEvent = com.brunogarcia.footballempireclubmanager.domain.model.TransferEvent(
+                week = repository.getCurrentWeek(),
+                playerName = player.name,
+                playerPosition = player.mainPosition.name,
+                overall = player.getBaseOverall(player.mainPosition),
+                fromClubName = sellerClubName,
+                toClubName = buyerClub.name,
+                fee = price
+            )
+            val currentHistory = repository.getTransferHistory().toMutableList()
+            currentHistory.add(transferEvent)
+            repository.saveTransferHistory(currentHistory)
 
             // 4. Guarda tudo na Base de Dados (e no disco)
             repository.updateClubsAndPlayers(allClubs, allPlayers)

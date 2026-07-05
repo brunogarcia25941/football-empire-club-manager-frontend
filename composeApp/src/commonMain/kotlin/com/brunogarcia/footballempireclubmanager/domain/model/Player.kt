@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Player(
     val id: String,
-    val clubId: String,
+    var clubId: String,
     val name: String,
     val age: Int,
     val mainPosition: Position, // Posição de origem
@@ -44,7 +44,8 @@ data class Player(
     var isListed: Boolean = false,
     var transferOffer: Double? = null,
     var offerClubName: String? = null,
-    var seasonMatches: Int = 0
+    var seasonMatches: Int = 0,
+    var lastTransferWeek: Int = -1
 ) {
     /**
      * Calcula o Overall Base do jogador na [targetPosition] sem considerar cansaço ou moral.

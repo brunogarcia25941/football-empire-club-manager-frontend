@@ -178,8 +178,8 @@ class SquadScreen : Screen {
                     }
                 }
 
-                // Overall Principal
-                val overall = player.getEffectiveOverall(player.mainPosition)
+                // Overall Principal (Real)
+                val overall = player.getBaseOverall(player.mainPosition)
                 Box(
                     modifier = Modifier
                         .size(42.dp)

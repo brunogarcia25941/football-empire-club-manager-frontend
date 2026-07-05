@@ -12,5 +12,6 @@ data class SaveGameData(
     val matchHistory: List<MatchResult>,
     val currentWeek: Int,
     val userClubId: String,
-    val starting11: List<StartingPlayer>
+    val starting11: List<StartingPlayer>,
+    val transferHistory: List<TransferEvent> = emptyList()
 )

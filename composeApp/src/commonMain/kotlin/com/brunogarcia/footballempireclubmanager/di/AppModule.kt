@@ -22,7 +22,7 @@ val appModule = module {
 
     // 2. Os nossos Casos de Uso (factory cria um novo sempre que for preciso)
     factory { SimulateMatchweekUseCase() }
-    factory { ProcessWeeklyUpdatesUseCase() }
+    factory { ProcessWeeklyUpdatesUseCase(get()) }
     factory { GenerateFixturesUseCase() }
     factory { CalculateLeagueTableUseCase() }
     factory { UpgradeFacilityUseCase(get()) }
@@ -45,6 +45,7 @@ val appModule = module {
     factory { TransferMarketScreenModel(get(), get()) }
     factory { NewSeasonScreenModel(get(), get(), get()) }
     factory { com.brunogarcia.footballempireclubmanager.presentation.screens.youthacademy.YouthAcademyScreenModel(get()) }
+    factory { com.brunogarcia.footballempireclubmanager.presentation.screens.inbox.InboxScreenModel(get()) }
     factory { (initialData: com.brunogarcia.footballempireclubmanager.domain.model.InitialDataWrapper) ->
         SelectTeamScreenModel(initialData, get(), get())
     }

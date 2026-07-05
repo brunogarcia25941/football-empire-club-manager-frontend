@@ -4,6 +4,7 @@ import com.brunogarcia.footballempireclubmanager.domain.engine.MatchResult
 import com.brunogarcia.footballempireclubmanager.domain.model.Club
 import com.brunogarcia.footballempireclubmanager.domain.model.Player
 import com.brunogarcia.footballempireclubmanager.domain.model.Position
+import com.brunogarcia.footballempireclubmanager.domain.repository.GameRepository
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.random.Random
@@ -12,7 +13,7 @@ import kotlin.random.Random
  * Caso de Uso responsável por processar todas as atualizações que ocorrem no final de uma semana.
  * Inclui: Recuperação física, Finanças, Evolução Dinâmica de Atributos e Propostas.
  */
-class ProcessWeeklyUpdatesUseCase {
+class ProcessWeeklyUpdatesUseCase(private val repository: GameRepository) {
 
     fun execute(
         allClubs: List<Club>,
@@ -29,6 +30,9 @@ class ProcessWeeklyUpdatesUseCase {
 
         // 3. Simular propostas de clubes IA para jogadores do utilizador
         simulateAIOffers(allClubs, allPlayers, userClubId)
+
+        // 3b. Simular transferências e contratações automáticas entre clubes da IA (e agentes livres)
+        simulateAIToAITransfers(allClubs, allPlayers, userClubId)
 
         // 4. Processar Finanças (Receitas e Despesas)
         updateFinances(allClubs, allPlayers, weeklyResults, currentWeek)
@@ -303,6 +307,296 @@ class ProcessWeeklyUpdatesUseCase {
                 
                 player.transferOffer = baseValue * multiplier
                 player.offerClubName = biddingClub.name
+            }
+        }
+    }
+
+    // --- TRANSFERÊNCIAS DINÂMICAS ENTRE CLUBES IA ---
+
+    /**
+     * Enumeração para agrupar as posições de jogo em setores específicos mais detalhados.
+     * Isto garante que cada posição tenha alternativas suficientes e que laterais
+     * (direito/esquerdo) e médios sejam avaliados separadamente.
+     */
+    private enum class PositionGroup {
+        GK,            // Guarda-redes
+        CB,            // Defesas Centrais
+        LB,            // Laterais Esquerdos
+        RB,            // Laterais Direitos
+        CDM,           // Médios Defensivos (Trinco)
+        CM,            // Médios Centro
+        CAM,           // Médios Centro Ofensivos (Nº 10)
+        WINGER_LEFT,   // Extremos/Alas Esquerdos (LM, LW)
+        WINGER_RIGHT,  // Extremos/Alas Direitos (RM, RW)
+        STRIKER        // Avançados (ST)
+    }
+
+    /**
+     * Mapeia uma Position específica para o seu respetivo PositionGroup.
+     */
+    private fun getPositionGroup(position: Position): PositionGroup {
+        return when (position) {
+            Position.GK -> PositionGroup.GK
+            Position.CB -> PositionGroup.CB
+            Position.LB -> PositionGroup.LB
+            Position.RB -> PositionGroup.RB
+            Position.CDM -> PositionGroup.CDM
+            Position.CM -> PositionGroup.CM
+            Position.CAM -> PositionGroup.CAM
+            Position.LM, Position.LW -> PositionGroup.WINGER_LEFT
+            Position.RM, Position.RW -> PositionGroup.WINGER_RIGHT
+            Position.ST -> PositionGroup.STRIKER
+        }
+    }
+
+    /**
+     * Define o número mínimo ideal de jogadores que um clube IA deve ter por grupo de posição
+     * para manter um plantel equilibrado de 22 jogadores (dois por posição, e 4 para defesas centrais).
+     */
+    private fun getIdealCount(group: PositionGroup): Int {
+        return when (group) {
+            PositionGroup.GK -> 2
+            PositionGroup.CB -> 4           // Central: jogam dois de cada vez, precisamos de 4.
+            PositionGroup.LB -> 2           // Lateral Esquerdo: 2 jogadores (titular + suplente)
+            PositionGroup.RB -> 2           // Lateral Direito: 2 jogadores (titular + suplente)
+            PositionGroup.CDM -> 2
+            PositionGroup.CM -> 2
+            PositionGroup.CAM -> 2
+            PositionGroup.WINGER_LEFT -> 2
+            PositionGroup.WINGER_RIGHT -> 2
+            PositionGroup.STRIKER -> 2
+        }
+    }
+
+    /**
+     * Simula contratações e transferências autónomas e lógicas entre clubes controlados pela IA.
+     * Os clubes analisam os seus plantéis, identificam carências por posição e contratam
+     * jogadores listados, não listados (com excedente no vendedor) ou agentes livres.
+     */
+    private fun simulateAIToAITransfers(allClubs: List<Club>, allPlayers: List<Player>, userClubId: String) {
+        // 0. Atualizar a lista de transferências dos clubes da IA de forma lógica (listando excedentes e retirando défices)
+        updateAITransferList(allClubs, allPlayers, userClubId)
+
+        val aiClubs = allClubs.filter { it.id != userClubId }
+        if (aiClubs.isEmpty()) return
+
+        aiClubs.forEach { buyerClub ->
+            // Se o clube comprador já atingiu o limite de 5 contratações nesta época, não contrata mais
+            val buyerIncomingCount = repository.getTransferHistory().count { it.toClubName == buyerClub.name }
+            if (buyerIncomingCount >= 5) return@forEach
+
+            // 1. Obter e agrupar os jogadores atuais do clube comprador
+            val buyerPlayers = allPlayers.filter { it.clubId == buyerClub.id }
+            if (buyerPlayers.isEmpty()) return@forEach
+            
+            // Contar quantos jogadores o comprador tem em cada grupo de posição
+            val counts = PositionGroup.values().associateWith { group ->
+                buyerPlayers.count { getPositionGroup(it.mainPosition) == group }
+            }
+
+            // Identificar as posições em défice real (menos que ideal)
+            val deficits = counts.mapNotNull { (group, count) ->
+                val ideal = getIdealCount(group)
+                if (count < ideal) {
+                    group to (ideal - count)
+                } else {
+                    null
+                }
+            }.sortedByDescending { it.second } // Ordena pelo maior défice primeiro
+
+            val targetGroup: PositionGroup
+            val isUpgradeSearch: Boolean
+
+            if (deficits.isNotEmpty()) {
+                // Cada clube da IA tem 40% de probabilidade de tentar suprir um défice semanalmente
+                if (Random.nextInt(1, 101) > 40) return@forEach
+                targetGroup = deficits.first().first
+                isUpgradeSearch = false
+            } else {
+                // Se não há défice, o clube decide se quer fazer um Upgrade (melhorar a equipa)
+                // Há 25% de probabilidade semanal de tentar fazer um upgrade para dar movimento ao mercado
+                if (Random.nextInt(1, 101) > 25) return@forEach
+                
+                // Escolhe a posição mais fraca do clube (com base na média dos jogadores atuais)
+                val groupAverages = PositionGroup.values().associateWith { group ->
+                    val groupPlayers = buyerPlayers.filter { getPositionGroup(it.mainPosition) == group }
+                    if (groupPlayers.isNotEmpty()) {
+                        groupPlayers.map { it.getBaseOverall(it.mainPosition) }.average()
+                    } else {
+                        0.0
+                    }
+                }
+                
+                // A posição com menor média é a mais fraca
+                val weakestGroup = groupAverages.minByOrNull { it.value }?.key ?: PositionGroup.values().random()
+                
+                // 30% de chance de ser um upgrade oportunista (posição aleatória), caso contrário atualiza a posição mais fraca
+                targetGroup = if (Random.nextInt(1, 101) <= 30) {
+                    PositionGroup.values().random()
+                } else {
+                    weakestGroup
+                }
+                isUpgradeSearch = true
+            }
+
+            // 2. Procurar candidatos disponíveis no mercado para essa posição
+            val candidates = allPlayers.filter { player ->
+                // Não pode ser do próprio clube comprador
+                player.clubId != buyerClub.id &&
+                // Não pode ser do clube do utilizador
+                player.clubId != userClubId &&
+                // Não pode ser um junior da academia que ainda não foi promovido
+                !player.clubId.startsWith("YOUTH_") &&
+                // O jogador não pode ter sido transferido esta época
+                player.lastTransferWeek == -1 &&
+                // Tem de pertencer ao grupo de posição desejado
+                getPositionGroup(player.mainPosition) == targetGroup
+            }.filter { player ->
+                // Regras de disponibilidade para venda lógica:
+                if (player.clubId.isEmpty()) {
+                    // Agente Livre: sempre disponível para contratação
+                    true
+                } else {
+                    // Jogador de outro clube da IA:
+                    val sellerClub = allClubs.find { it.id == player.clubId }
+                    val sellerOutgoingCount = if (sellerClub != null) {
+                        repository.getTransferHistory().count { it.fromClubName == sellerClub.name }
+                    } else {
+                        0
+                    }
+                    
+                    // Se o clube vendedor já atingiu o limite de 5 vendas nesta época, não vende
+                    if (sellerOutgoingCount >= 5) {
+                        false
+                    } else if (player.isListed) {
+                        // Se está na lista de transferências, está disponível
+                        true
+                    } else {
+                        // Se não está listado, o vendedor aceita vender se tiver excedente
+                        val sellerPlayers = allPlayers.filter { it.clubId == player.clubId }
+                        val sellerCount = sellerPlayers.count { getPositionGroup(it.mainPosition) == targetGroup }
+                        val sellerIdeal = getIdealCount(targetGroup)
+                        
+                        if (sellerCount > sellerIdeal) {
+                            true
+                        } else {
+                            // 25% de chance de aceitar vender mesmo sendo essencial (titular/sem excedente)
+                            // Isto simula propostas irrecusáveis. O clube vendedor ficará com défice e terá de contratar depois.
+                            Random.nextInt(1, 101) <= 25
+                        }
+                    }
+                }
+            }
+
+            if (candidates.isEmpty()) return@forEach
+
+            // 3. Filtrar candidatos pelo orçamento do clube comprador (máximo 75% do orçamento num único jogador)
+            val maxSpend = buyerClub.budget * 0.75
+            val affordableCandidates = candidates.map { player ->
+                val price = if (player.clubId.isEmpty()) {
+                    0.0
+                } else {
+                    val baseValue = player.getMarketValue()
+                    baseValue * Random.nextDouble(0.90, 1.10)
+                }
+                player to price
+            }.filter { it.second <= maxSpend }
+
+            if (affordableCandidates.isEmpty()) return@forEach
+
+            // 4. Se for procura de upgrade, o candidato tem de ser superior ou próximo à média atual da posição no clube comprador
+            val finalCandidates = if (isUpgradeSearch) {
+                val currentAvg = buyerPlayers.filter { getPositionGroup(it.mainPosition) == targetGroup }
+                    .map { it.getBaseOverall(it.mainPosition) }
+                    .average()
+                affordableCandidates.filter { it.first.getBaseOverall(it.first.mainPosition) >= currentAvg - 1 }
+            } else {
+                affordableCandidates
+            }
+
+            if (finalCandidates.isEmpty()) return@forEach
+
+            // Escolhe o melhor jogador possível (maior overall) que consiga pagar
+            val bestCandidatePair = finalCandidates.maxByOrNull { it.first.getBaseOverall(it.first.mainPosition) } ?: return@forEach
+            val targetPlayer = bestCandidatePair.first
+            val transferFee = bestCandidatePair.second
+
+            // 30% de probabilidade de rutura contratual nas negociações com a IA
+            if (Random.nextInt(1, 101) <= 30) {
+                println("[MERCADO IA] As negociações salariais com ${targetPlayer.name} falharam. Transferência abortada.")
+                return@forEach
+            }
+
+            // 5. Executar a Transferência
+            val sellerClub = allClubs.find { it.id == targetPlayer.clubId }
+
+            // Deduz o orçamento do comprador
+            buyerClub.budget -= transferFee
+
+            // Adiciona ao orçamento do vendedor (se não for agente livre)
+            if (sellerClub != null) {
+                sellerClub.budget += transferFee
+            }
+
+            // Atualiza os dados do jogador contratado
+            val oldClubName = sellerClub?.name ?: "Agente Livre"
+            
+            // Registar no Histórico de Transferências da Liga
+            val transferEvent = com.brunogarcia.footballempireclubmanager.domain.model.TransferEvent(
+                week = repository.getCurrentWeek(),
+                playerName = targetPlayer.name,
+                playerPosition = targetPlayer.mainPosition.name,
+                overall = targetPlayer.getBaseOverall(targetPlayer.mainPosition),
+                fromClubName = oldClubName,
+                toClubName = buyerClub.name,
+                fee = transferFee
+            )
+            val currentHistory = repository.getTransferHistory().toMutableList()
+            currentHistory.add(transferEvent)
+            repository.saveTransferHistory(currentHistory)
+
+            targetPlayer.clubId = buyerClub.id
+            targetPlayer.isListed = false
+            targetPlayer.transferOffer = null
+            targetPlayer.offerClubName = null
+            targetPlayer.contractYears = 3 // Recebe contrato padrão de 3 anos no novo clube
+            targetPlayer.lastTransferWeek = repository.getCurrentWeek()
+
+            println("[MERCADO IA] O clube ${buyerClub.name} contratou ${targetPlayer.name} ($targetGroup - OVR ${targetPlayer.getBaseOverall(targetPlayer.mainPosition)}) ao clube $oldClubName por ${transferFee.toInt()} €.")
+        }
+    }
+
+    /**
+     * Faz com que os clubes da IA façam a gestão da sua lista de transferências de forma lógica.
+     * Se tiverem excedente num setor, colocam o jogador mais fraco desse setor na lista.
+     * Se tiverem défice, removem os seus jogadores da lista.
+     */
+    private fun updateAITransferList(allClubs: List<Club>, allPlayers: List<Player>, userClubId: String) {
+        val aiClubs = allClubs.filter { it.id != userClubId }
+        
+        aiClubs.forEach { club ->
+            val clubPlayers = allPlayers.filter { it.clubId == club.id }
+            
+            PositionGroup.values().forEach { group ->
+                val groupPlayers = clubPlayers.filter { getPositionGroup(it.mainPosition) == group }
+                val currentCount = groupPlayers.size
+                val ideal = getIdealCount(group)
+                
+                if (currentCount > ideal) {
+                    // Tem excedente neste setor!
+                    // Há 30% de chance semanal de listar o jogador com menor overall deste setor
+                    if (Random.nextInt(1, 101) <= 30) {
+                        val unlistedPlayers = groupPlayers.filter { !it.isListed }
+                        if (unlistedPlayers.isNotEmpty()) {
+                            val weakestPlayer = unlistedPlayers.minByOrNull { it.getBaseOverall(it.mainPosition) }
+                            weakestPlayer?.isListed = true
+                        }
+                    }
+                } else if (currentCount < ideal) {
+                    // Tem défice neste setor!
+                    // Retira os seus jogadores deste setor que estejam listados
+                    groupPlayers.filter { it.isListed }.forEach { it.isListed = false }
+                }
             }
         }
     }

@@ -28,7 +28,8 @@ data class MarketState(
     val filteredPlayers: List<MarketItem> = emptyList(),  // Lista filtrada para exibir
     val searchQuery: String = "",
     val selectedPosition: String? = null, // Filtro de posição (null = Todas)
-    val selectedPlayerForDetails: MarketItem? = null // Jogador selecionado para o popup de detalhes
+    val selectedPlayerForDetails: MarketItem? = null, // Jogador selecionado para o popup de detalhes
+    val transferHistory: List<com.brunogarcia.footballempireclubmanager.domain.model.TransferEvent> = emptyList()
 )
 
 class TransferMarketScreenModel(
@@ -46,7 +47,7 @@ class TransferMarketScreenModel(
     /**
      * Carrega os dados iniciais do mercado.
      */
-    private fun loadMarket() {
+    fun loadMarket() {
         val userClubId = repository.getUserClubId()
         val allClubs = repository.getAllClubs()
         val allPlayers = repository.getAllPlayers()
@@ -67,11 +68,14 @@ class TransferMarketScreenModel(
             }
             .sortedByDescending { it.overall }
 
+        val history = repository.getTransferHistory().reversed() // Ordenar pelas mais recentes
+
         _state.update {
             it.copy(
                 myBudget = myClub.budget,
                 allMarketPlayers = playersForSale,
-                filteredPlayers = playersForSale
+                filteredPlayers = playersForSale,
+                transferHistory = history
             )
         }
     }

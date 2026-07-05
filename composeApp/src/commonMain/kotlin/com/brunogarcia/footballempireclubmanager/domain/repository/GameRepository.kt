@@ -31,4 +31,9 @@ interface GameRepository {
     fun saveGameToDisk()
     fun loadGameFromDisk(): Boolean
     fun hasSavedGame(): Boolean
+
+    // Histórico de Transferências da Época
+    fun getTransferHistory(): List<com.brunogarcia.footballempireclubmanager.domain.model.TransferEvent>
+    fun saveTransferHistory(history: List<com.brunogarcia.footballempireclubmanager.domain.model.TransferEvent>)
+    fun clearTransferHistory()
 }

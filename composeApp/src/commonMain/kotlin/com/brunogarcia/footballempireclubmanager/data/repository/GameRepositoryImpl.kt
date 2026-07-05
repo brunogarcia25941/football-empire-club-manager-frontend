@@ -21,6 +21,7 @@ class GameRepositoryImpl : GameRepository {
     private val userStarting11 = mutableListOf<com.brunogarcia.footballempireclubmanager.domain.engine.StartingPlayer>()
 
     private val fixtures = mutableListOf<com.brunogarcia.footballempireclubmanager.domain.model.Fixture>()
+    private val transferHistory = mutableListOf<com.brunogarcia.footballempireclubmanager.domain.model.TransferEvent>()
 
     override fun initializeGame(newClubs: List<Club>, newPlayers: List<Player>, userClubId: String) {
         clubs.clear()
@@ -28,6 +29,7 @@ class GameRepositoryImpl : GameRepository {
         matchHistory.clear()
         userStarting11.clear() // Limpa a escalação do jogo anterior
         fixtures.clear()       // Limpa o calendário do jogo anterior
+        transferHistory.clear() // Limpa o histórico de transferências do jogo anterior
 
         clubs.addAll(newClubs)
         players.addAll(newPlayers)
@@ -91,7 +93,8 @@ class GameRepositoryImpl : GameRepository {
             matchHistory = matchHistory,
             currentWeek = currentWeek,
             userClubId = currentUserClubId,
-            starting11 = userStarting11
+            starting11 = userStarting11,
+            transferHistory = transferHistory
         )
         // Converte o jogo t0do para uma string JSON e guarda no telemóvel
         val jsonString = Json.encodeToString(saveData)
@@ -110,6 +113,7 @@ class GameRepositoryImpl : GameRepository {
             fixtures.clear(); fixtures.addAll(saveData.fixtures)
             matchHistory.clear(); matchHistory.addAll(saveData.matchHistory)
             userStarting11.clear(); userStarting11.addAll(saveData.starting11)
+            transferHistory.clear(); transferHistory.addAll(saveData.transferHistory)
 
             currentWeek = saveData.currentWeek
             currentUserClubId = saveData.userClubId
@@ -118,5 +122,18 @@ class GameRepositoryImpl : GameRepository {
             println("Erro ao carregar o jogo: ${e.message}")
             false
         }
+    }
+
+    override fun getTransferHistory(): List<com.brunogarcia.footballempireclubmanager.domain.model.TransferEvent> {
+        return transferHistory.toList()
+    }
+
+    override fun saveTransferHistory(history: List<com.brunogarcia.footballempireclubmanager.domain.model.TransferEvent>) {
+        transferHistory.clear()
+        transferHistory.addAll(history)
+    }
+
+    override fun clearTransferHistory() {
+        transferHistory.clear()
     }
 }
